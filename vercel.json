@@ -5,7 +5,7 @@
     "api/mcp.ts": {
       "maxDuration": 60,
       "memory": 1024,
-      "includeFiles": "node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm"
+      "includeFiles": "node_modules/@ansvar/mcp-sqlite/**/*"
     }
   },
   "crons": [
