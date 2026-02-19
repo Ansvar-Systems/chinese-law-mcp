@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "functions": {
+    "api/mcp.ts": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

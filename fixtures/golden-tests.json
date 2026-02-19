@@ -1,0 +1,181 @@
+{
+  "$schema": "./golden-tests.schema.json",
+  "version": "1.0",
+  "mcp_name": "Chinese Law MCP",
+  "description": "Golden contract tests for the Chinese Law MCP covering cybersecurity, data protection, commercial law, and anti-monopoly legislation",
+  "tests": [
+    {
+      "id": "cn-001",
+      "category": "article_retrieval",
+      "description": "Retrieve Article 1 of the Cybersecurity Law (网络安全法) — purpose clause establishing network security",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "网络安全法",
+        "article": "1"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "text_contains": ["网络安全", "网络空间主权"],
+        "fields_present": ["text", "article_number", "law_name"]
+      }
+    },
+    {
+      "id": "cn-002",
+      "category": "article_retrieval",
+      "description": "Retrieve Article 4 of PIPL (个人信息保护法) — personal information protection principles",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "个人信息保护法",
+        "article": "4"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "text_contains": ["个人信息"],
+        "fields_present": ["text", "article_number", "law_name"],
+        "text_not_empty": true
+      }
+    },
+    {
+      "id": "cn-003",
+      "category": "article_retrieval",
+      "description": "Retrieve Article 1 of the Company Law (公司法) — purpose clause for establishing and regulating companies",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "公司法",
+        "article": "1"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "text_contains": ["公司"],
+        "fields_present": ["text", "article_number", "law_name"],
+        "text_not_empty": true
+      }
+    },
+    {
+      "id": "cn-004",
+      "category": "search",
+      "description": "Full-text search for '个人信息' (personal information) returns PIPL provisions",
+      "tool": "search_legislation",
+      "input": {
+        "query": "个人信息"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "min_results": 1,
+        "any_result_contains": ["个人信息保护法", "个人信息"]
+      }
+    },
+    {
+      "id": "cn-005",
+      "category": "search",
+      "description": "Full-text search for '数据安全' (data security) returns DSL provisions",
+      "tool": "search_legislation",
+      "input": {
+        "query": "数据安全"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "min_results": 1,
+        "any_result_contains": ["数据安全法", "数据安全"]
+      }
+    },
+    {
+      "id": "cn-006",
+      "category": "search",
+      "description": "Full-text search for '反垄断' (anti-monopoly) returns Anti-Monopoly Law provisions",
+      "tool": "search_legislation",
+      "input": {
+        "query": "反垄断"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "min_results": 1,
+        "any_result_contains": ["反垄断法", "反垄断"]
+      }
+    },
+    {
+      "id": "cn-007",
+      "category": "citation_roundtrip",
+      "description": "Citation for CSL Article 21 includes official NPC URL pattern",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "网络安全法",
+        "article": "21"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "fields_present": ["text", "article_number"],
+        "citation_url_pattern": "^https?://(www\\.)?npc\\.gov\\.cn/",
+        "text_not_empty": true
+      }
+    },
+    {
+      "id": "cn-008",
+      "category": "citation_roundtrip",
+      "description": "Citation for PIPL Article 13 includes official identifier and law name",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "个人信息保护法",
+        "article": "13"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "fields_present": ["text", "article_number", "law_name"],
+        "text_not_empty": true,
+        "text_contains": ["个人信息"]
+      }
+    },
+    {
+      "id": "cn-009",
+      "category": "eu_cross_reference",
+      "description": "Cross-reference lookup for PIPL returns GDPR relationship information",
+      "tool": "get_provision_eu_basis",
+      "input": {
+        "law_identifier": "个人信息保护法"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "any_result_contains": ["GDPR", "2016/679", "General Data Protection", "personal data"]
+      }
+    },
+    {
+      "id": "cn-010",
+      "category": "eu_cross_reference",
+      "description": "Cross-reference lookup for CSL returns NIS2 Directive relationship",
+      "tool": "get_provision_eu_basis",
+      "input": {
+        "law_identifier": "网络安全法"
+      },
+      "assertions": {
+        "result_not_empty": true,
+        "any_result_contains": ["NIS", "2022/2555", "network and information", "cybersecurity"]
+      }
+    },
+    {
+      "id": "cn-011",
+      "category": "negative_test",
+      "description": "Non-existent law identifier returns graceful error or empty result",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "不存在的法律九九九九",
+        "article": "1"
+      },
+      "assertions": {
+        "handles_gracefully": true
+      }
+    },
+    {
+      "id": "cn-012",
+      "category": "negative_test",
+      "description": "Malformed article number returns graceful error or empty result",
+      "tool": "get_provision",
+      "input": {
+        "law_identifier": "网络安全法",
+        "article": "ABC-INVALID"
+      },
+      "assertions": {
+        "handles_gracefully": true
+      }
+    }
+  ]
+}

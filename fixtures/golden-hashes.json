@@ -1,0 +1,64 @@
+{
+  "$schema": "./golden-hashes.schema.json",
+  "version": "1.0",
+  "mcp_name": "Chinese Law MCP",
+  "jurisdiction": "CN",
+  "provisions": [
+    {
+      "id": "cn-hash-001",
+      "description": "Constitution of the PRC (中华人民共和国宪法) Article 1 — establishes the PRC as a socialist state under the people's democratic dictatorship; stable anchor provision unchanged since 2018 amendment",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202403/t20240305_434354.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "中华人民共和国是工人阶级领导的、以工农联盟为基础的人民民主专政的社会主义国家"
+    },
+    {
+      "id": "cn-hash-002",
+      "description": "Cybersecurity Law (网络安全法) Article 1 — purpose clause; adopted 2016-11-07, amended 2025-10-28, effective revision 2026-01-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202411/t20241101_441026.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "为了保障网络安全，维护网络空间主权和国家安全"
+    },
+    {
+      "id": "cn-hash-003",
+      "description": "Personal Information Protection Law (个人信息保护法) Article 1 — purpose clause; adopted 2021-08-20, effective 2021-11-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313095.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "为了保护个人信息权益，规范个人信息处理活动"
+    },
+    {
+      "id": "cn-hash-004",
+      "description": "Data Security Law (数据安全法) Article 1 — purpose clause; adopted 2021-06-10, effective 2021-09-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_312280.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "为了规范数据处理活动，保障数据安全"
+    },
+    {
+      "id": "cn-hash-005",
+      "description": "Company Law (公司法) Article 1 — purpose clause; revised 2023-12-29, effective 2024-07-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202312/t20231229_433798.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "为了规范公司的组织和行为，保护公司"
+    },
+    {
+      "id": "cn-hash-006",
+      "description": "Civil Code (民法典) Book Three Contract Article 463 — scope clause establishing that Book Three regulates civil-law relations arising from contracts; adopted 2020-05-28, effective 2021-01-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202006/t20200602_306419.html",
+      "selector_hint": "第四百六十三条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "本编调整因合同产生的民事关系"
+    },
+    {
+      "id": "cn-hash-007",
+      "description": "Anti-Monopoly Law (反垄断法) Article 1 — purpose clause; revised 2022-06-24, effective 2022-08-01",
+      "upstream_url": "https://www.npc.gov.cn/npc/c2/c30834/202206/t20220624_318367.html",
+      "selector_hint": "第一条",
+      "expected_sha256": "COMPUTE_ON_FIRST_INGEST",
+      "expected_snippet": "为了预防和制止垄断行为，保护市场公平竞争"
+    }
+  ]
+}

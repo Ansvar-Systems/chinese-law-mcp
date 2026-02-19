@@ -1,0 +1,72 @@
+{
+  "name": "@ansvar/chinese-law-mcp",
+  "version": "1.0.0",
+  "mcpName": "eu.ansvar/chinese-law-mcp",
+  "description": "Chinese law database covering cybersecurity, data protection, commercial law, and anti-monopoly legislation with full-text search",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "chinese-law-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist/",
+    "data/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:contract": "vitest run __tests__/contract/",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "start": "node dist/server.js",
+    "start:stdio": "node dist/server.js --stdio",
+    "health": "curl -s http://localhost:3000/health | jq .",
+    "build:db": "tsx scripts/build-db.ts",
+    "build:db:free": "tsx scripts/build-db-free.ts",
+    "ingest": "tsx scripts/ingest.ts",
+    "drift:detect": "tsx scripts/drift-detect.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "node-sqlite3-wasm": "^0.8.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansvar-Systems/chinese-law-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ansvar-Systems/chinese-law-mcp/issues"
+  },
+  "homepage": "https://github.com/Ansvar-Systems/chinese-law-mcp#readme",
+  "keywords": [
+    "mcp",
+    "chinese-law",
+    "cybersecurity-law",
+    "pipl",
+    "data-security",
+    "company-law",
+    "anti-monopoly",
+    "e-commerce",
+    "civil-code",
+    "china",
+    "legal",
+    "compliance",
+    "ansvar"
+  ],
+  "author": "Ansvar Systems <hello@ansvar.eu>",
+  "publishConfig": {
+    "access": "public"
+  }
+}

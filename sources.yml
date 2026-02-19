@@ -1,0 +1,113 @@
+# sources.yml
+schema_version: "1.0"
+mcp_name: "Chinese Law MCP"
+jurisdiction: "CN"
+
+sources:
+  - name: "National People's Congress Law Database"
+    authority: "National People's Congress of the People's Republic of China (全国人民代表大会)"
+    official_portal: "https://www.npc.gov.cn"
+    canonical_identifier: "N/A (no standardized URI scheme; laws identified by title + adoption date)"
+    retrieval_method: "HTML_SCRAPE"
+    api_documentation: "N/A (no public API; HTML pages with structured content)"
+    update_frequency: "on_change"
+    last_ingested: "PENDING_FIRST_INGEST"
+    license_or_terms:
+      type: "Government Public Data"
+      url: "https://www.npc.gov.cn"
+      summary: "Official NPC legislation is public domain under Chinese law; reproduction for non-commercial use permitted"
+    coverage:
+      scope: "All national laws adopted by the NPC and its Standing Committee, including the Constitution, organic laws, basic laws (civil, criminal, procedural), and special laws (cybersecurity, data security, personal information protection, company law, anti-monopoly, e-commerce)"
+      limitations: "Does not include State Council administrative regulations, ministerial rules, local regulations, or judicial interpretations; only current consolidated versions (limited historical version tracking)"
+    languages:
+      - "zh"
+
+  - name: "NPC English Translations"
+    authority: "National People's Congress of the People's Republic of China"
+    official_portal: "http://en.npc.gov.cn.cdurl.cn/laws.html"
+    canonical_identifier: "N/A"
+    retrieval_method: "HTML_SCRAPE"
+    api_documentation: "N/A"
+    update_frequency: "on_change"
+    last_ingested: "PENDING_FIRST_INGEST"
+    license_or_terms:
+      type: "Government Public Data (Reference Only)"
+      url: "http://en.npc.gov.cn.cdurl.cn/laws.html"
+      summary: "English translations published by NPC for reference only; not legally authoritative"
+    coverage:
+      scope: "Selected major national laws translated into English, including Constitution, Cybersecurity Law, PIPL, Data Security Law, Company Law, Civil Code, Anti-Monopoly Law"
+      limitations: "Not all laws have English translations; translations may lag behind Chinese text amendments; marked as 'Translation for Reference Only' and not legally binding"
+    languages:
+      - "en"
+
+  - name: "State Council Gazette / Government Portal"
+    authority: "State Council of the People's Republic of China (国务院)"
+    official_portal: "https://www.gov.cn"
+    canonical_identifier: "N/A"
+    retrieval_method: "HTML_SCRAPE"
+    api_documentation: "N/A (no public API; gazette available as HTML/PDF)"
+    update_frequency: "on_change"
+    last_ingested: "PENDING_FIRST_INGEST"
+    license_or_terms:
+      type: "Government Public Data"
+      url: "https://www.gov.cn/zhengce/xxgk/index.htm"
+      summary: "State Council regulations and policy documents are public; reproduction for non-commercial use permitted"
+    coverage:
+      scope: "Administrative regulations (行政法规) promulgated by the State Council, including implementing regulations for Cybersecurity Law, PIPL, Data Security Law, MLPS requirements, and critical information infrastructure protection regulations"
+      limitations: "Does not include NPC-level laws (covered by primary source); ministerial rules from specific ministries require separate ingestion; limited structured data format"
+    languages:
+      - "zh"
+
+  - name: "PKU Law (Peking University Legal Information Database)"
+    authority: "Peking University Legal Information Center (北京大学法律信息中心)"
+    official_portal: "https://www.pkulaw.com"
+    canonical_identifier: "N/A (proprietary internal identifiers)"
+    retrieval_method: "HTML_SCRAPE"
+    api_documentation: "N/A (subscription-based; no public API)"
+    update_frequency: "daily"
+    last_ingested: "PENDING_FIRST_INGEST"
+    license_or_terms:
+      type: "Commercial Subscription"
+      url: "https://www.pkulaw.com/english"
+      summary: "Subscription-based legal database; English translations available under LawInfoChina; usage requires institutional or commercial license"
+    coverage:
+      scope: "Comprehensive Chinese law database including all NPC laws, State Council regulations, ministerial rules, local regulations, judicial interpretations by Supreme People's Court, and English translations of major laws"
+      limitations: "Commercial subscription required for full access; English translations are unofficial reference translations; free-tier MCP will use NPC/gov.cn official sources only, with PKU Law as supplementary reference for translation verification"
+    languages:
+      - "zh"
+      - "en"
+
+  - name: "China Justice Observer (CJO)"
+    authority: "China Justice Observer"
+    official_portal: "https://www.chinajusticeobserver.com"
+    canonical_identifier: "N/A"
+    retrieval_method: "HTML_SCRAPE"
+    api_documentation: "N/A"
+    update_frequency: "on_change"
+    last_ingested: "PENDING_FIRST_INGEST"
+    license_or_terms:
+      type: "Creative Commons / Editorial"
+      url: "https://www.chinajusticeobserver.com"
+      summary: "Open access English translations of Chinese laws and legal commentary; translations are unofficial but widely cited in academic and professional contexts"
+    coverage:
+      scope: "English translations of major Chinese laws including Civil Code, E-Commerce Law, Data Security Law, PIPL, Company Law; includes cross-reference tables and commentary"
+      limitations: "Not an official government source; translations are editorial and may differ from NPC official translations; used only as a secondary reference for English cross-verification"
+    languages:
+      - "en"
+      - "zh"
+
+data_freshness:
+  automated_checks: true
+  check_frequency: "weekly"
+  last_verified: "PENDING_FIRST_INGEST"
+
+# Notes:
+# - China does not have a public structured API for legislation (unlike EUR-Lex or wetten.overheid.nl)
+# - Primary ingestion relies on HTML scraping of npc.gov.cn and gov.cn
+# - The NPC launched a searchable law database in 2021 (powered by PKU Law / 北大法宝)
+#   accessible at flk.npc.gov.cn (国家法律法规数据库)
+# - English translations are reference-only; the Chinese text is the sole legally binding version
+# - MLPS (Multi-Level Protection Scheme / 等级保护) requirements are defined in
+#   GB/T 22239 national standards, not directly in legislation
+# - The Civil Code (民法典) replaced the standalone Contract Law (合同法) effective 2021-01-01;
+#   contract provisions are now in Book Three (Articles 463-988)

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.db
+!data/.gitkeep
+.env
+.env.*
+*.tgz
+coverage/
+.vercel/
+.DS_Store
