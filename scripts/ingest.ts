@@ -247,6 +247,24 @@ async function main(): Promise<void> {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.log(`    ERROR: ${msg}`);
+      // Write minimal seed on network error so build:db has metadata
+      if (!fs.existsSync(seedFile)) {
+        const minimalSeed = {
+          id: law.id,
+          type: law.type,
+          title: law.title,
+          title_en: law.title_en,
+          short_name: law.short_name,
+          status: law.status,
+          issued_date: law.issued_date,
+          in_force_date: law.in_force_date,
+          url: law.url,
+          provisions: [],
+          eu_references: law.eu_references ?? [],
+        };
+        fs.writeFileSync(seedFile, JSON.stringify(minimalSeed, null, 2));
+        console.log(`    Wrote minimal seed for ${law.id}`);
+      }
       failed++;
     }
 

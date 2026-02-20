@@ -1,0 +1,25 @@
+{
+  "id": "dsl-2021",
+  "type": "statute",
+  "title": "中华人民共和国数据安全法",
+  "title_en": "Data Security Law of the People's Republic of China",
+  "short_name": "DSL",
+  "status": "in_force",
+  "issued_date": "2021-06-10",
+  "in_force_date": "2021-09-01",
+  "url": "https://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_312280.html",
+  "provisions": [],
+  "eu_references": [
+    {
+      "eu_document_id": "regulation:2022/868",
+      "eu_type": "regulation",
+      "eu_year": 2022,
+      "eu_number": 868,
+      "eu_title": "Regulation (EU) 2022/868 on European data governance (Data Governance Act)",
+      "eu_short_name": "Data Governance Act",
+      "reference_type": "references",
+      "is_primary": true,
+      "description": "DSL addresses data classification and security governance, paralleling EU Data Governance Act"
+    }
+  ]
+}

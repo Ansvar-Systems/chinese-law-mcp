@@ -1,0 +1,25 @@
+{
+  "id": "csl-2016",
+  "type": "statute",
+  "title": "中华人民共和国网络安全法",
+  "title_en": "Cybersecurity Law of the People's Republic of China",
+  "short_name": "CSL",
+  "status": "amended",
+  "issued_date": "2016-11-07",
+  "in_force_date": "2017-06-01",
+  "url": "https://www.npc.gov.cn/npc/c2/c30834/202411/t20241101_441026.html",
+  "provisions": [],
+  "eu_references": [
+    {
+      "eu_document_id": "directive:2022/2555",
+      "eu_type": "directive",
+      "eu_year": 2022,
+      "eu_number": 2555,
+      "eu_title": "Directive (EU) 2022/2555 on measures for a high common level of cybersecurity (NIS2)",
+      "eu_short_name": "NIS2 Directive",
+      "reference_type": "references",
+      "is_primary": true,
+      "description": "CSL addresses similar cybersecurity requirements as the EU NIS2 Directive"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "pipl-2021",
+  "type": "statute",
+  "title": "中华人民共和国个人信息保护法",
+  "title_en": "Personal Information Protection Law of the People's Republic of China",
+  "short_name": "PIPL",
+  "status": "in_force",
+  "issued_date": "2021-08-20",
+  "in_force_date": "2021-11-01",
+  "url": "https://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313095.html",
+  "provisions": [],
+  "eu_references": [
+    {
+      "eu_document_id": "regulation:2016/679",
+      "eu_type": "regulation",
+      "eu_year": 2016,
+      "eu_number": 679,
+      "eu_title": "Regulation (EU) 2016/679 General Data Protection Regulation",
+      "eu_short_name": "GDPR",
+      "reference_type": "references",
+      "is_primary": true,
+      "description": "PIPL is China's comprehensive personal data protection law, often compared to the EU GDPR"
+    }
+  ]
+}
