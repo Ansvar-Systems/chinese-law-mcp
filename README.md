@@ -123,6 +123,80 @@ Once connected, just ask naturally:
 
 ---
 
+## Laws Covered
+
+| Law | Chinese Name | Adopted | Effective | Key Topic |
+|-----|-------------|---------|-----------|-----------|
+| **Cybersecurity Law (CSL)** | 网络安全法 | 2016-11-07 (amended 2025-10-28) | 2017-06-01 (rev. 2026-01-01) | Network security, CII protection |
+| **Personal Information Protection Law (PIPL)** | 个人信息保护法 | 2021-08-20 | 2021-11-01 | Personal data protection |
+| **Data Security Law (DSL)** | 数据安全法 | 2021-06-10 | 2021-09-01 | Data classification, national core data |
+| **Company Law** | 公司法 | 2023-12-29 (revised) | 2024-07-01 | Corporate governance, shareholder rights |
+| **Civil Code (Book Three: Contracts)** | 民法典 第三编 合同 | 2020-05-28 | 2021-01-01 | Contract formation, performance, liability |
+| **E-Commerce Law** | 电子商务法 | 2018-08-31 | 2019-01-01 | Platform obligations, consumer protection |
+| **Anti-Monopoly Law** | 反垄断法 | 2022-06-24 (amended) | 2022-08-01 | Market competition, digital economy |
+| **Constitution (selected provisions)** | 宪法 | 2018-03-11 (amended) | 2018-03-11 | Fundamental rights, state structure |
+
+Additionally includes key State Council administrative regulations:
+
+- Critical Information Infrastructure Security Protection Regulations (关键信息基础设施安全保护条例)
+- Network Data Security Management Regulations (网络数据安全管理条例)
+- MLPS / Classified Protection requirements referenced in GB/T 22239
+
+---
+
+## Deployment Tiers
+
+| Tier | Content | Database Size | Platform |
+|------|---------|---------------|----------|
+| **Free** | All national statutes + administrative regulations + EU cross-references | ~200-400 MB | Vercel (runtime download) or local |
+| **Professional** | + Judicial interpretations by SPC + departmental rules + regulatory guidance + full Civil Code | ~2-3 GB | Azure Container Apps / Docker / local |
+
+### Deployment Strategy: LARGE - Dual Tier, Runtime Download
+
+The Chinese legal corpus is massive due to the breadth of national laws, State Council regulations, judicial interpretations, and departmental rules. The free-tier database (statutes + administrative regulations only) is estimated at 200-400 MB, which exceeds the Vercel 250 MB bundle limit. This requires the **Strategy B (runtime download)** approach:
+
+- Free-tier database is compressed and hosted on GitHub Releases
+- Downloaded and decompressed to `/tmp` on first cold start (~10-20s)
+- Health cron keeps the Vercel function warm to avoid repeated downloads
+- Professional tier requires local Docker or Azure Container Apps deployment
+
+### Capability Detection
+
+Both tiers use the same codebase. At startup, the server detects available SQLite tables and gates tools accordingly:
+
+```
+Free tier:     core_legislation, eu_references
+Professional:  core_legislation, eu_references, judicial_interpretations, departmental_rules, regulatory_guidance
+```
+
+Tools that require professional capabilities return an upgrade message on the free tier.
+
+---
+
+## Database Size Estimates
+
+| Component | Estimated Size | Notes |
+|-----------|---------------|-------|
+| National laws (NPC + NPCSC) | ~50-80 MB | ~300 laws, full text in Chinese |
+| State Council regulations | ~80-120 MB | ~800 administrative regulations |
+| English translations | ~30-50 MB | Selected laws with NPC official translations |
+| EU cross-references | ~5-10 MB | Mapping tables (PIPL-GDPR, CSL-NIS2, etc.) |
+| FTS5 indexes | ~40-80 MB | Full-text search indexes for Chinese text |
+| **Free tier total** | **~200-400 MB** | |
+| Judicial interpretations (SPC) | ~500 MB-1 GB | Supreme People's Court interpretations |
+| Departmental rules | ~500 MB-1 GB | Ministry-level regulations |
+| **Professional tier total** | **~2-3 GB** | |
+
+---
+
+## Language Support
+
+The primary language is **Mandarin Chinese (zh)**. All official law text is in Chinese, which is the sole legally binding version.
+
+English translations are included where available from the NPC English portal (en.npc.gov.cn). These translations are explicitly marked as "Translation for Reference Only" and are not legally authoritative. The search tool supports queries in both Chinese and English.
+
+---
+
 ## Available Tools (13)
 
 ### Core Legal Research Tools (8)
