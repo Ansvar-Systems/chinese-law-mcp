@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "jurisdiction": "CN",
+  "jurisdiction_name": "China",
+  "portal": "npc.gov.cn, gov.cn",
+  "census_date": "2026-02-22",
+  "agent": "claude-opus-4-6",
+  "summary": {
+    "total_laws": 7,
+    "total_provisions": 0,
+    "ingestable": 7,
+    "ocr_needed": 0,
+    "inaccessible": 0,
+    "excluded": 0
+  },
+  "laws": [
+    {
+      "id": "aml-2022",
+      "title": "中华人民共和国反垄断法",
+      "title_en": "Anti-Monopoly Law of the People's Republic of China",
+      "short_name": "AML",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202206/t20220624_318367.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "civil-code-2020",
+      "title": "中华人民共和国民法典",
+      "title_en": "Civil Code of the People's Republic of China",
+      "short_name": "Civil Code",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202006/t20200602_306419.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "company-law-2023",
+      "title": "中华人民共和国公司法",
+      "title_en": "Company Law of the People's Republic of China",
+      "short_name": "Company Law",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202312/t20231229_433798.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "csl-2016",
+      "title": "中华人民共和国网络安全法",
+      "title_en": "Cybersecurity Law of the People's Republic of China",
+      "short_name": "CSL",
+      "status": "amended",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202411/t20241101_441026.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "dsl-2021",
+      "title": "中华人民共和国数据安全法",
+      "title_en": "Data Security Law of the People's Republic of China",
+      "short_name": "DSL",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_312280.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "ecommerce-law-2018",
+      "title": "中华人民共和国电子商务法",
+      "title_en": "E-Commerce Law of the People's Republic of China",
+      "short_name": "E-Commerce Law",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/201808/t20180831_223726.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    },
+    {
+      "id": "pipl-2021",
+      "title": "中华人民共和国个人信息保护法",
+      "title_en": "Personal Information Protection Law of the People's Republic of China",
+      "short_name": "PIPL",
+      "status": "in_force",
+      "url": "https://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313095.html",
+      "classification": "ingestable",
+      "ingested": true,
+      "provision_count": 0,
+      "ingestion_date": "2026-02-22"
+    }
+  ]
+}

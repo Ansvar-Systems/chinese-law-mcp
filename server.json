@@ -7,15 +7,38 @@
     "source": "github"
   },
   "homepage": "https://ansvar.eu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "Apache-2.0",
+  "keywords": [
+    "chinese-law",
+    "china",
+    "legal",
+    "cybersecurity-law",
+    "pipl",
+    "data-security",
+    "company-law",
+    "anti-monopoly",
+    "e-commerce",
+    "civil-code",
+    "compliance",
+    "mcp"
+  ],
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@ansvar/chinese-law-mcp",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "transport": {
         "type": "stdio"
+      }
+    },
+    {
+      "registryType": "npm",
+      "identifier": "@ansvar/chinese-law-mcp",
+      "version": "1.1.0",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://chinese-law-mcp.vercel.app/mcp"
       }
     }
   ]
