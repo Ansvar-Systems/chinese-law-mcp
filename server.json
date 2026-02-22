@@ -7,7 +7,7 @@
     "source": "github"
   },
   "homepage": "https://ansvar.eu",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "Apache-2.0",
   "keywords": [
     "chinese-law",
@@ -27,7 +27,7 @@
     {
       "registryType": "npm",
       "identifier": "@ansvar/chinese-law-mcp",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "transport": {
         "type": "stdio"
       }
@@ -35,7 +35,7 @@
     {
       "registryType": "npm",
       "identifier": "@ansvar/chinese-law-mcp",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "transport": {
         "type": "streamable-http",
         "url": "https://chinese-law-mcp.vercel.app/mcp"
