@@ -504,7 +504,7 @@ function writeMeta(db: Database.Database, tier: string): void {
     insertMeta.run('built_at', new Date().toISOString());
     insertMeta.run('builder', 'build-db.ts');
     insertMeta.run('jurisdiction', 'CN');
-    insertMeta.run('source', 'npc.gov.cn, gov.cn');
+    insertMeta.run('source', 'flk.npc.gov.cn');
     insertMeta.run('licence', 'Government Public Data');
   });
   writeMetaTx();

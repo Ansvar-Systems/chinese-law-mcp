@@ -1,7 +1,11 @@
 /**
- * HTML parser for Chinese legislation from npc.gov.cn and gov.cn.
+ * Parser for Chinese legislation.
  *
- * Uses cheerio to extract structured article data from Chinese law HTML pages.
+ * Supports two input formats:
+ *   1. DOCX → HTML (via mammoth) from flk.npc.gov.cn downloads
+ *   2. Raw HTML from npc.gov.cn (legacy)
+ *
+ * Uses cheerio to extract structured article data.
  * Handles Chinese numeral article references (第一条, 第二条, etc.)
  * and full-width punctuation (。，；：).
  */
@@ -15,6 +19,7 @@ import { chineseToArabic } from '../../src/utils/chinese-numerals.js';
 
 export interface ParsedProvision {
   provision_ref: string;
+  chapter: string;
   section: string;
   title: string;
   content: string;
@@ -27,7 +32,7 @@ export interface ParsedLaw {
   title: string;
   title_en: string;
   short_name: string;
-  status: 'in_force' | 'amended';
+  status: 'in_force' | 'amended' | 'repealed' | 'not_yet_in_force';
   issued_date: string;
   in_force_date: string;
   url: string;
@@ -50,11 +55,166 @@ export interface LawIndexEntry {
 // Match 第X条 where X can be Chinese numerals or Arabic digits
 const ARTICLE_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)条[\s\u3000]*/;
 
-// Match chapter/section headings like 第一章, 第二节
-const CHAPTER_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)[章节编]/;
+// Match chapter headings: 第X编, 第X章
+const PART_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)编[\s\u3000]*(.*)/;
+const CHAPTER_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)章[\s\u3000]*(.*)/;
+const SECTION_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)节[\s\u3000]*(.*)/;
+
+// Match structural headings that should be skipped (not article content)
+const HEADING_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)[编章节分]/;
+
+// Table of contents marker
+const TOC_END_MARKERS = ['附则', '总则'];
 
 /**
- * Parse an NPC law HTML page to extract articles.
+ * Parse mammoth-generated HTML from a DOCX file to extract articles.
+ *
+ * Mammoth produces simple HTML with <p> tags. The DOCX content includes:
+ * 1. Title
+ * 2. Adoption notice
+ * 3. Table of contents (articles listed without content)
+ * 4. Body text with full article content
+ *
+ * We need to skip the TOC and parse only the body.
+ */
+export function parseDocxHtml(html: string, lawId: string, meta: {
+  title: string;
+  type: 'statute' | 'administrative_regulation';
+  status: 'in_force' | 'amended' | 'repealed' | 'not_yet_in_force';
+  issued_date: string;
+  in_force_date: string;
+}): ParsedLaw {
+  const $ = cheerio.load(html);
+  const provisions: ParsedProvision[] = [];
+
+  // Extract all paragraphs
+  const paragraphs: string[] = [];
+  $('p').each((_i, el) => {
+    const text = $(el).text().trim();
+    if (text.length > 0) {
+      paragraphs.push(text);
+    }
+  });
+
+  // DOCX files typically have a table of contents followed by the body.
+  // The TOC lists articles like "第一条" without content.
+  // The body starts after the TOC and has articles WITH content.
+  //
+  // Strategy: Find the LAST occurrence of "第一条" — that's the body start.
+  // The TOC references "第一条" as a short line; the body "第一条" is followed by content.
+  let bodyStartIndex = 0;
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    if (ARTICLE_PATTERN.test(paragraphs[i])) {
+      // Found an article reference — check if this is article 1
+      const match = paragraphs[i].match(ARTICLE_PATTERN);
+      if (match) {
+        const numStr = match[1];
+        const num = /^\d+$/.test(numStr) ? parseInt(numStr, 10) : chineseToArabic(numStr);
+        if (num === 1) {
+          bodyStartIndex = i;
+          break;
+        }
+      }
+    }
+  }
+
+  // Track current structural context
+  let currentPart = '';
+  let currentChapter = '';
+  let currentSection = '';
+  let currentArticleNum = '';
+  let currentArticleContent: string[] = [];
+
+  function saveCurrentArticle(): void {
+    if (currentArticleNum && currentArticleContent.length > 0) {
+      provisions.push({
+        provision_ref: currentArticleNum,
+        chapter: [currentPart, currentChapter, currentSection].filter(Boolean).join(' > '),
+        section: currentArticleNum,
+        title: '',
+        content: currentArticleContent.join('\n').trim(),
+        language: 'zh',
+      });
+    }
+  }
+
+  // Process paragraphs from body start
+  for (let i = bodyStartIndex; i < paragraphs.length; i++) {
+    const para = paragraphs[i];
+
+    // Check for structural headings
+    const partMatch = para.match(PART_PATTERN);
+    if (partMatch) {
+      currentPart = para.replace(/[\s\u3000]+/g, ' ').trim();
+      continue;
+    }
+
+    const chapterMatch = para.match(CHAPTER_PATTERN);
+    if (chapterMatch) {
+      currentChapter = para.replace(/[\s\u3000]+/g, ' ').trim();
+      currentSection = '';  // Reset section when new chapter starts
+      continue;
+    }
+
+    const sectionMatch = para.match(SECTION_PATTERN);
+    if (sectionMatch) {
+      currentSection = para.replace(/[\s\u3000]+/g, ' ').trim();
+      continue;
+    }
+
+    // Check for article start
+    const articleMatch = para.match(ARTICLE_PATTERN);
+    if (articleMatch) {
+      // Save previous article
+      saveCurrentArticle();
+
+      // Start new article
+      const numStr = articleMatch[1];
+      const arabicNum = /^\d+$/.test(numStr) ? parseInt(numStr, 10) : chineseToArabic(numStr);
+      currentArticleNum = String(arabicNum);
+
+      // Content is the rest after 第X条
+      const content = para.replace(ARTICLE_PATTERN, '').trim();
+      currentArticleContent = content ? [content] : [];
+      continue;
+    }
+
+    // Skip other structural headings within article context
+    if (HEADING_PATTERN.test(para)) {
+      continue;
+    }
+
+    // Continuation of current article
+    if (currentArticleNum) {
+      // Skip very short lines that look like sub-headings (e.g., "第X分编 XXX")
+      if (para.match(/^第[一二三四五六七八九十百千零〇\d]+分编/)) {
+        currentPart = para.replace(/[\s\u3000]+/g, ' ').trim();
+        continue;
+      }
+      currentArticleContent.push(para);
+    }
+  }
+
+  // Save last article
+  saveCurrentArticle();
+
+  return {
+    id: lawId,
+    type: meta.type,
+    title: meta.title,
+    title_en: '',
+    short_name: '',
+    status: meta.status,
+    issued_date: meta.issued_date,
+    in_force_date: meta.in_force_date,
+    url: `https://flk.npc.gov.cn/detail?bbbs=${lawId}`,
+    provisions,
+    language: 'zh',
+  };
+}
+
+/**
+ * Parse an NPC law HTML page to extract articles (legacy — for npc.gov.cn).
  */
 export function parseNpcHtml(html: string, lawId: string, lawTitle: string, lawTitleEn: string, language: string = 'zh'): ParsedLaw {
   const $ = cheerio.load(html);
@@ -64,7 +224,6 @@ export function parseNpcHtml(html: string, lawId: string, lawTitle: string, lawT
   let currentArticleContent: string[] = [];
 
   // NPC pages typically have the law text in a main content div
-  // Try various selectors used by npc.gov.cn
   const contentSelectors = [
     '.article_content',
     '.law_content',
@@ -98,22 +257,20 @@ export function parseNpcHtml(html: string, lawId: string, lawTitle: string, lawT
     }
   });
 
-  // If no paragraphs found, try splitting the full text by newlines
   if (paragraphs.length === 0) {
     const fullText = contentEl.text();
     const lines = fullText.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 0);
     paragraphs.push(...lines);
   }
 
-  // Process paragraphs to extract articles
   for (const para of paragraphs) {
     const articleMatch = para.match(ARTICLE_PATTERN);
 
     if (articleMatch) {
-      // Save previous article
       if (currentArticleNum && currentArticleContent.length > 0) {
         provisions.push({
           provision_ref: currentArticleNum,
+          chapter: '',
           section: currentArticleNum,
           title: '',
           content: currentArticleContent.join('\n').trim(),
@@ -121,28 +278,25 @@ export function parseNpcHtml(html: string, lawId: string, lawTitle: string, lawT
         });
       }
 
-      // Start new article
       const numStr = articleMatch[1];
       const arabicNum = /^\d+$/.test(numStr)
         ? parseInt(numStr, 10)
         : chineseToArabic(numStr);
       currentArticleNum = String(arabicNum);
 
-      // Content is the rest after 第X条
       const content = para.replace(ARTICLE_PATTERN, '').trim();
       currentArticleContent = content ? [content] : [];
     } else if (currentArticleNum) {
-      // Skip chapter/section headings within current article context
-      if (!CHAPTER_PATTERN.test(para)) {
+      if (!HEADING_PATTERN.test(para)) {
         currentArticleContent.push(para);
       }
     }
   }
 
-  // Save last article
   if (currentArticleNum && currentArticleContent.length > 0) {
     provisions.push({
       provision_ref: currentArticleNum,
+      chapter: '',
       section: currentArticleNum,
       title: '',
       content: currentArticleContent.join('\n').trim(),
@@ -173,31 +327,6 @@ function buildLaw(
     provisions,
     language,
   };
-}
-
-/**
- * Parse an NPC law index page to extract links to individual laws.
- */
-export function parseNpcIndex(html: string): LawIndexEntry[] {
-  const $ = cheerio.load(html);
-  const entries: LawIndexEntry[] = [];
-
-  $('a').each((_i, el) => {
-    const href = $(el).attr('href');
-    const text = $(el).text().trim();
-
-    if (href && text && (text.includes('法') || text.includes('条例') || text.includes('典'))) {
-      entries.push({
-        title: text,
-        title_en: '',
-        url: href.startsWith('http') ? href : `https://www.npc.gov.cn${href}`,
-        adopted_date: '',
-        effective_date: '',
-      });
-    }
-  });
-
-  return entries;
 }
 
 /**

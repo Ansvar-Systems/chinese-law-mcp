@@ -1,0 +1,50 @@
+{
+  "id": "2c909fdd678bf17901678bf634330311",
+  "type": "statute",
+  "title": "中华人民共和国外国中央银行财产司法强制措施豁免法",
+  "title_en": "",
+  "short_name": "",
+  "status": "in_force",
+  "issued_date": "2005-10-25",
+  "in_force_date": "2005-10-25",
+  "url": "https://flk.npc.gov.cn/detail?bbbs=2c909fdd678bf17901678bf634330311",
+  "category_code": 110,
+  "category_name": "宪法相关法 (Constitutional-related)",
+  "issuing_body": "全国人民代表大会常务委员会",
+  "provisions": [
+    {
+      "provision_ref": "1",
+      "chapter": "",
+      "section": "1",
+      "title": "",
+      "content": "中华人民共和国对外国中央银行财产给予财产保全和执行的司法强制措施的豁免；但是，外国中央银行或者其所属国政府书面放弃豁免的或者指定用于财产保全和执行的财产除外。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "2",
+      "chapter": "",
+      "section": "2",
+      "title": "",
+      "content": "本法所称外国中央银行，是指外国的和区域经济一体化组织的中央银行或者履行中央银行职能的金融管理机构。\n本法所称外国中央银行财产，是指外国中央银行的现金、票据、银行存款、有价证券、外汇储备、黄金储备以及该银行的不动产和其他财产。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "3",
+      "chapter": "",
+      "section": "3",
+      "title": "",
+      "content": "外国不给予中华人民共和国中央银行或者中华人民共和国特别行政区金融管理机构的财产以豁免，或者所给予的豁免低于本法的规定的，中华人民共和国根据对等原则办理。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "4",
+      "chapter": "",
+      "section": "4",
+      "title": "",
+      "content": "本法自公布之日起施行。",
+      "language": "zh"
+    }
+  ],
+  "definitions": [],
+  "eu_references": []
+}

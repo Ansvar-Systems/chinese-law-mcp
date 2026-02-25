@@ -1,14 +1,17 @@
 # Chinese Law MCP Server
 
-**The NPC Law Database alternative for the AI age.**
+**The NPC National Law Database alternative for the AI age.**
 
 [![npm version](https://badge.fury.io/js/%40ansvar/chinese-law-mcp.svg)](https://www.npmjs.com/package/@ansvar/chinese-law-mcp)
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry-blue)](https://registry.modelcontextprotocol.io)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![GitHub stars](https://img.shields.io/github/stars/Ansvar-Systems/Chinese-law-mcp?style=social)](https://github.com/Ansvar-Systems/Chinese-law-mcp)
-[![CI](https://github.com/Ansvar-Systems/Chinese-law-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Ansvar-Systems/Chinese-law-mcp/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/Ansvar-Systems/chinese-law-mcp?style=social)](https://github.com/Ansvar-Systems/chinese-law-mcp)
+[![CI](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/ci.yml)
+[![Daily Data Check](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/check-updates.yml/badge.svg)](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/check-updates.yml)
+[![Database](https://img.shields.io/badge/database-pre--built-green)](#whats-included)
+[![Provisions](https://img.shields.io/badge/provisions-62%2C648-blue)](#whats-included)
 
-Query **Chinese legislation** -- covering data protection, cybersecurity, corporate law, and more -- directly from Claude, Cursor, or any MCP-compatible client.
+Query **1,184 Chinese laws and administrative regulations** -- from 个人信息保护法 and 网络安全法 to 民法典, 公司法, and more -- directly from Claude, Cursor, or any MCP-compatible client.
 
 If you're building legal tech, compliance tools, or doing Chinese legal research, this is your verified reference database.
 
@@ -18,13 +21,13 @@ Built by [Ansvar Systems](https://ansvar.eu) -- Stockholm, Sweden
 
 ## Why This Exists
 
-Chinese legal research is scattered across official government databases, commercial legal platforms, and institutional archives. Whether you're:
+Chinese legal research is scattered across official NPC databases, State Council publications, and commercial legal platforms. Whether you're:
 - A **lawyer** validating citations in a brief or contract
-- A **compliance officer** checking if a statute is still in force
+- A **compliance officer** checking PIPL, CSL, or DSL requirements
 - A **legal tech developer** building tools on Chinese law
-- A **researcher** tracing legislative history
+- A **researcher** analysing legislation across 9 legal categories
 
-...you shouldn't need dozens of browser tabs and manual PDF cross-referencing. Ask Claude. Get the exact provision. With context.
+...you shouldn't need dozens of browser tabs and manual cross-referencing. Ask Claude. Get the exact provision. With context.
 
 This MCP server makes Chinese law **searchable, cross-referenceable, and AI-readable**.
 
@@ -112,88 +115,81 @@ npx @ansvar/chinese-law-mcp
 
 Once connected, just ask naturally:
 
-- *"What does the Chinese data protection law say about consent?"*
-- *"Search for cybersecurity requirements in Chinese legislation"*
-- *"Is this statute still in force?"*
-- *"Find provisions about personal data in Chinese law"*
-- *"What EU directives does this Chinese law implement?"*
-- *"Which Chinese laws implement the GDPR?"*
-- *"Validate this legal citation"*
+- *"个人信息保护法第四条说了什么？"* (What does Article 4 of PIPL say?)
+- *"搜索关于数据安全的规定"* (Search for provisions about data security)
+- *"网络安全法是否仍然有效？"* (Is the Cybersecurity Law still in force?)
+- *"What are the consent requirements under China's PIPL?"*
+- *"Find provisions about反垄断 (anti-monopoly) in Chinese law"*
+- *"Validate this citation: 民法典 第一条"*
 - *"Build a legal stance on data breach notification requirements"*
+- *"Which Chinese laws relate to EU data protection directives?"*
 
 ---
 
-## Laws Covered
+## What's Included
 
-| Law | Chinese Name | Adopted | Effective | Key Topic |
-|-----|-------------|---------|-----------|-----------|
-| **Cybersecurity Law (CSL)** | 网络安全法 | 2016-11-07 (amended 2025-10-28) | 2017-06-01 (rev. 2026-01-01) | Network security, CII protection |
-| **Personal Information Protection Law (PIPL)** | 个人信息保护法 | 2021-08-20 | 2021-11-01 | Personal data protection |
-| **Data Security Law (DSL)** | 数据安全法 | 2021-06-10 | 2021-09-01 | Data classification, national core data |
-| **Company Law** | 公司法 | 2023-12-29 (revised) | 2024-07-01 | Corporate governance, shareholder rights |
-| **Civil Code (Book Three: Contracts)** | 民法典 第三编 合同 | 2020-05-28 | 2021-01-01 | Contract formation, performance, liability |
-| **E-Commerce Law** | 电子商务法 | 2018-08-31 | 2019-01-01 | Platform obligations, consumer protection |
-| **Anti-Monopoly Law** | 反垄断法 | 2022-06-24 (amended) | 2022-08-01 | Market competition, digital economy |
-| **Constitution (selected provisions)** | 宪法 | 2018-03-11 (amended) | 2018-03-11 | Fundamental rights, state structure |
+| Category | Count | Details |
+|----------|-------|---------|
+| **National Laws** | 385 statutes | Constitution, constitutional-related, civil & commercial, administrative, economic, social, criminal, procedural |
+| **Administrative Regulations** | 799 regulations | State Council administrative regulations (行政法规) |
+| **Provisions** | 62,648 articles | Full-text searchable with FTS5 |
+| **EU Cross-References** | Included | Mapping Chinese laws to corresponding EU directives |
+| **Database Size** | ~51 MB | Optimized SQLite, portable |
+| **Daily Updates** | Automated | Freshness checks against NPC database |
 
-Additionally includes key State Council administrative regulations:
+### Legal Categories Covered
 
-- Critical Information Infrastructure Security Protection Regulations (关键信息基础设施安全保护条例)
-- Network Data Security Management Regulations (网络数据安全管理条例)
-- MLPS / Classified Protection requirements referenced in GB/T 22239
+| Category | Chinese Name | Count |
+|----------|-------------|-------|
+| Constitution | 宪法 | 7 |
+| Constitutional-related | 宪法相关法 | 75 |
+| Civil & Commercial | 民法商法 | 46 |
+| Administrative | 行政法 | 146 |
+| Economic | 经济法 | 133 |
+| Social | 社会法 | 44 |
+| Criminal | 刑法 | 7 |
+| Procedural | 诉讼与非诉讼程序法 | 15 |
+| Administrative Regulations | 行政法规 | 799 |
+| **Total** | | **1,272 enumerated (1,184 ingestable)** |
+
+**Verified data only** -- every provision is extracted from official DOCX files downloaded from the NPC National Law Database (flk.npc.gov.cn). Zero LLM-generated content.
 
 ---
 
-## Deployment Tiers
+## Why This Works
 
-| Tier | Content | Database Size | Platform |
-|------|---------|---------------|----------|
-| **Free** | All national statutes + administrative regulations + EU cross-references | ~200-400 MB | Vercel (runtime download) or local |
-| **Professional** | + Judicial interpretations by SPC + departmental rules + regulatory guidance + full Civil Code | ~2-3 GB | Azure Container Apps / Docker / local |
+**Verbatim Source Text (No LLM Processing):**
+- All statute text is extracted from official NPC DOCX files via mammoth HTML conversion
+- Provisions are returned **unchanged** from SQLite FTS5 database rows
+- Zero LLM summarization or paraphrasing -- the database contains regulation text, not AI interpretations
 
-### Deployment Strategy: LARGE - Dual Tier, Runtime Download
+**Smart Context Management:**
+- Search returns ranked provisions with BM25 scoring (safe for context)
+- Provision retrieval gives exact text by law name + article number
+- Cross-references help navigate without loading everything at once
 
-The Chinese legal corpus is massive due to the breadth of national laws, State Council regulations, judicial interpretations, and departmental rules. The free-tier database (statutes + administrative regulations only) is estimated at 200-400 MB, which exceeds the Vercel 250 MB bundle limit. This requires the **Strategy B (runtime download)** approach:
-
-- Free-tier database is compressed and hosted on GitHub Releases
-- Downloaded and decompressed to `/tmp` on first cold start (~10-20s)
-- Health cron keeps the Vercel function warm to avoid repeated downloads
-- Professional tier requires local Docker or Azure Container Apps deployment
-
-### Capability Detection
-
-Both tiers use the same codebase. At startup, the server detects available SQLite tables and gates tools accordingly:
-
+**Technical Architecture:**
 ```
-Free tier:     core_legislation, eu_references
-Professional:  core_legislation, eu_references, judicial_interpretations, departmental_rules, regulatory_guidance
+NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLite → FTS5 snippet() → MCP response
+                                                      ↑                           ↑
+                                              第X条 regex parser          Verbatim database query
 ```
 
-Tools that require professional capabilities return an upgrade message on the free tier.
+### Traditional Research vs. This MCP
 
----
+| Traditional Approach | This MCP Server |
+|---------------------|-----------------|
+| Navigate flk.npc.gov.cn SPA manually | Search by plain language: *"个人信息 同意"* |
+| Download DOCX files one at a time | Get the exact provision with context |
+| Manual cross-referencing between laws | `build_legal_stance` aggregates across sources |
+| "Is this statute still in force?" → check manually | `check_currency` tool → answer in seconds |
+| Find EU equivalents → dig through EUR-Lex | `get_eu_basis` → linked EU directives instantly |
+| Check multiple sources for updates | Daily automated freshness checks |
+| No API, no integration | MCP protocol → AI-native |
 
-## Database Size Estimates
+**Traditional:** Browse flk.npc.gov.cn → Find law → Download DOCX → Open Word → Ctrl+F → Repeat for each law → Manual cross-referencing
 
-| Component | Estimated Size | Notes |
-|-----------|---------------|-------|
-| National laws (NPC + NPCSC) | ~50-80 MB | ~300 laws, full text in Chinese |
-| State Council regulations | ~80-120 MB | ~800 administrative regulations |
-| English translations | ~30-50 MB | Selected laws with NPC official translations |
-| EU cross-references | ~5-10 MB | Mapping tables (PIPL-GDPR, CSL-NIS2, etc.) |
-| FTS5 indexes | ~40-80 MB | Full-text search indexes for Chinese text |
-| **Free tier total** | **~200-400 MB** | |
-| Judicial interpretations (SPC) | ~500 MB-1 GB | Supreme People's Court interpretations |
-| Departmental rules | ~500 MB-1 GB | Ministry-level regulations |
-| **Professional tier total** | **~2-3 GB** | |
-
----
-
-## Language Support
-
-The primary language is **Mandarin Chinese (zh)**. All official law text is in Chinese, which is the sole legally binding version.
-
-English translations are included where available from the NPC English portal (en.npc.gov.cn). These translations are explicitly marked as "Translation for Reference Only" and are not legally authoritative. The search tool supports queries in both Chinese and English.
+**This MCP:** *"What does the PIPL say about cross-border data transfers?"* → Done.
 
 ---
 
@@ -203,13 +199,13 @@ English translations are included where available from the NPC English portal (e
 
 | Tool | Description |
 |------|-------------|
-| `search_legislation` | FTS5 full-text search across all provisions with BM25 ranking |
-| `get_provision` | Retrieve specific provision by statute + chapter/section |
-| `check_currency` | Check if statute is in force, amended, or repealed |
+| `search_legislation` | FTS5 search on 62,648 provisions with BM25 ranking |
+| `get_provision` | Retrieve specific provision by law name + article number |
+| `list_sources` | List all 1,184 available laws with metadata |
 | `validate_citation` | Validate citation against database (zero-hallucination check) |
 | `build_legal_stance` | Aggregate citations from statutes for a legal topic |
 | `format_citation` | Format citations per Chinese conventions (full/short/pinpoint) |
-| `list_sources` | List all available statutes with metadata |
+| `check_currency` | Check if statute is in force, amended, or repealed |
 | `about` | Server info, capabilities, and coverage summary |
 
 ### EU/International Law Integration Tools (5)
@@ -224,45 +220,29 @@ English translations are included where available from the NPC English portal (e
 
 ---
 
-## Why This Works
-
-**Verbatim Source Text (No LLM Processing):**
-- All statute text is ingested from official Chinese government sources
-- Provisions are returned **unchanged** from SQLite FTS5 database rows
-- Zero LLM summarization or paraphrasing -- the database contains regulation text, not AI interpretations
-
-**Smart Context Management:**
-- Search returns ranked provisions with BM25 scoring (safe for context)
-- Provision retrieval gives exact text by statute identifier + chapter/section
-- Cross-references help navigate without loading everything at once
-
-**Technical Architecture:**
-```
-Official Sources --> Parse --> SQLite --> FTS5 snippet() --> MCP response
-                     ^                       ^
-              Provision parser         Verbatim database query
-```
-
-### Traditional Research vs. This MCP
-
-| Traditional Approach | This MCP Server |
-|---------------------|-----------------|
-| Search official databases by statute number | Search by plain language |
-| Navigate multi-chapter statutes manually | Get the exact provision with context |
-| Manual cross-referencing between laws | `build_legal_stance` aggregates across sources |
-| "Is this statute still in force?" --> check manually | `check_currency` tool --> answer in seconds |
-| Find EU basis --> dig through EUR-Lex | `get_eu_basis` --> linked EU directives instantly |
-| No API, no integration | MCP protocol --> AI-native |
-
----
-
 ## Data Sources & Freshness
 
 All content is sourced from authoritative Chinese legal databases:
 
-- **[National People's Congress](https://www.npc.gov.cn)** -- Official Chinese government legal database
+- **[NPC National Law Database (flk.npc.gov.cn)](https://flk.npc.gov.cn)** -- Official National People's Congress database with full DOCX downloads
+- **[EUR-Lex](https://eur-lex.europa.eu/)** -- Official EU law database (metadata for cross-references)
 
-**Verified data only** -- every citation is validated against official sources. Zero LLM-generated content.
+### Census-First Ingestion
+
+The entire NPC National Law Database was enumerated via the FLK search API across 9 legal categories. Each law's official DOCX file was downloaded, converted to HTML via mammoth, and parsed article-by-article using Chinese legal numbering patterns (第X条).
+
+| Metric | Value |
+|--------|-------|
+| **Total laws enumerated** | 1,272 |
+| **Ingestable (in force + amended)** | 1,184 |
+| **Excluded (repealed)** | 88 |
+| **Provisions extracted** | 62,648 |
+| **Ingestion success rate** | 99.9% (1 network timeout) |
+| **Corpus date** | 2026-02-25 |
+
+### Automated Freshness Checks (Daily)
+
+A [daily GitHub Actions workflow](.github/workflows/check-updates.yml) monitors the NPC database for new or amended laws.
 
 ---
 
@@ -289,27 +269,39 @@ See [SECURITY.md](SECURITY.md) for the full policy and vulnerability reporting.
 
 > **THIS TOOL IS NOT LEGAL ADVICE**
 >
-> Statute text is sourced from official Chinese government publications. However:
+> Statute text is sourced from the official NPC National Law Database (flk.npc.gov.cn). However:
 > - This is a **research tool**, not a substitute for professional legal counsel
-> - **Court case coverage is limited** -- do not rely solely on this for case law research
+> - **Only the Chinese-language text is legally binding** -- English queries return Chinese provisions
 > - **Verify critical citations** against primary sources for court filings
-> - **EU cross-references** are extracted from statute text, not EUR-Lex full text
+> - **EU cross-references** are for comparative reference, not compliance mapping
 
-**Before using professionally, read:** [DISCLAIMER.md](DISCLAIMER.md) | [SECURITY.md](SECURITY.md)
+**Before using professionally, read:** [DISCLAIMER.md](DISCLAIMER.md) | [PRIVACY.md](PRIVACY.md)
 
 ### Client Confidentiality
 
-Queries go through the Claude API. For privileged or confidential matters, use on-premise deployment.
+Queries go through the Claude API. For privileged or confidential matters, use on-premise deployment. See [PRIVACY.md](PRIVACY.md) for guidance.
 
 ---
 
 ## Development
 
+### Branching Strategy
+
+This repository uses a `dev` integration branch. **Do not push directly to `main`.**
+
+```
+feature-branch → PR to dev → verify on dev → PR to main → deploy
+```
+
+- `main` is production-ready. Only receives merges from `dev` via PR.
+- `dev` is the integration branch. All changes land here first.
+- Feature branches are created from `dev`.
+
 ### Setup
 
 ```bash
-git clone https://github.com/Ansvar-Systems/Chinese-law-mcp
-cd Chinese-law-mcp
+git clone https://github.com/Ansvar-Systems/chinese-law-mcp
+cd chinese-law-mcp
 npm install
 npm run build
 npm test
@@ -321,6 +313,23 @@ npm test
 npm run dev                                       # Start MCP server
 npx @anthropic/mcp-inspector node dist/index.js   # Test with MCP Inspector
 ```
+
+### Data Management
+
+```bash
+npm run ingest                    # Census-driven full corpus ingestion from flk.npc.gov.cn
+npm run build:db                  # Rebuild SQLite database from seed files
+npm run check-updates             # Check NPC database for amendments
+npm run drift:detect              # Detect data drift against census
+npm test                          # Run all tests
+npm run test:contract             # Run golden contract tests
+```
+
+### Performance
+
+- **Search Speed:** <100ms for most FTS5 queries
+- **Database Size:** ~51 MB (efficient, portable)
+- **Ingestion:** Census-first -- 1,272 laws enumerated, 1,184 ingested
 
 ---
 
@@ -340,7 +349,7 @@ This server is part of **Ansvar's Compliance Suite** -- MCP servers that work to
 ### [@ansvar/automotive-cybersecurity-mcp](https://github.com/Ansvar-Systems/Automotive-MCP)
 **Query UNECE R155/R156 and ISO 21434** -- Automotive cybersecurity compliance. `npx @ansvar/automotive-cybersecurity-mcp`
 
-**30+ national law MCPs** covering Australia, Brazil, Canada, China, Denmark, Finland, France, Germany, Ghana, Iceland, India, Ireland, Israel, Italy, Japan, Kenya, Netherlands, Nigeria, Norway, Singapore, Slovenia, South Korea, Sweden, Switzerland, Thailand, UAE, UK, and more.
+**69+ national law MCPs** covering Australia, Brazil, Canada, China, Denmark, Finland, France, Germany, Ghana, Iceland, India, Ireland, Israel, Italy, Japan, Kenya, Netherlands, Nigeria, Norway, Poland, Singapore, Slovenia, South Korea, Spain, Sweden, Switzerland, Thailand, Turkey, UAE, UK, US, Zimbabwe, and more.
 
 ---
 
@@ -349,23 +358,24 @@ This server is part of **Ansvar's Compliance Suite** -- MCP servers that work to
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Priority areas:
-- Court case law expansion
-- EU cross-reference improvements
+- Judicial interpretation expansion (Supreme People's Court)
+- Departmental rules (Ministry-level regulations)
 - Historical statute versions and amendment tracking
-- Additional statutory instruments and regulations
+- English translation integration
 
 ---
 
 ## Roadmap
 
-- [x] Core statute database with FTS5 search
-- [x] EU/international law cross-references
-- [x] Vercel Streamable HTTP deployment
-- [x] npm package publication
-- [ ] Court case law expansion
+- [x] **Full corpus ingestion** -- Census-first: 1,184 laws, 62,648 provisions from NPC DOCX files (v2.0.0)
+- [x] **EU/international law cross-references**
+- [x] **Vercel Streamable HTTP deployment**
+- [x] **npm package publication**
+- [x] **Golden standard** -- 13 tools, 6-layer security CI/CD, open source files
+- [ ] Judicial interpretations (Supreme People's Court)
+- [ ] Departmental rules (Ministry-level regulations)
 - [ ] Historical statute versions (amendment tracking)
-- [ ] Preparatory works / explanatory memoranda
-- [ ] Lower court and tribunal decisions
+- [ ] English translation integration
 
 ---
 
@@ -374,12 +384,12 @@ Priority areas:
 If you use this MCP server in academic research:
 
 ```bibtex
-@software{chinese_law_mcp_2025,
+@software{chinese_law_mcp_2026,
   author = {Ansvar Systems AB},
-  title = {Chinese Law MCP Server: AI-Powered Legal Research Tool},
-  year = {2025},
-  url = {https://github.com/Ansvar-Systems/Chinese-law-mcp},
-  note = {Chinese legal database with full-text search and EU cross-references}
+  title = {Chinese Law MCP Server: Production-Grade Legal Research Tool},
+  year = {2026},
+  url = {https://github.com/Ansvar-Systems/chinese-law-mcp},
+  note = {Comprehensive Chinese legal database with 1,184 laws and 62,648 provisions from NPC National Law Database}
 }
 ```
 
@@ -391,7 +401,7 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 
 ### Data Licenses
 
-- **Statutes & Legislation:** Chinese Government (public domain)
+- **Laws & Regulations:** Chinese Government (public domain -- 中华人民共和国政府公开信息)
 - **EU Metadata:** EUR-Lex (EU public domain)
 
 ---
@@ -400,7 +410,7 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 
 We build AI-accelerated compliance and legal research tools for the global market. This MCP server started as our internal reference tool -- turns out everyone building compliance tools has the same research frustrations.
 
-So we're open-sourcing it.
+So we're open-sourcing it. Navigating 1,184 Chinese laws shouldn't require a law degree.
 
 **[ansvar.eu](https://ansvar.eu)** -- Stockholm, Sweden
 

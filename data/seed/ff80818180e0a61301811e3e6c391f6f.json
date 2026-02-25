@@ -1,0 +1,194 @@
+{
+  "id": "ff80818180e0a61301811e3e6c391f6f",
+  "type": "administrative_regulation",
+  "title": "中华人民共和国海关统计条例",
+  "title_en": "",
+  "short_name": "",
+  "status": "in_force",
+  "issued_date": "2022-03-29",
+  "in_force_date": "2022-05-01",
+  "url": "https://flk.npc.gov.cn/detail?bbbs=ff80818180e0a61301811e3e6c391f6f",
+  "category_code": 210,
+  "category_name": "行政法规 (Administrative Regulations)",
+  "issuing_body": "国务院",
+  "provisions": [
+    {
+      "provision_ref": "1",
+      "chapter": "",
+      "section": "1",
+      "title": "",
+      "content": "为了科学、有效地开展海关统计工作，保障海关统计的准确性、及时性、完整性，根据《中华人民共和国海关法》和《中华人民共和国统计法》的有关规定，制定本条例。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "2",
+      "chapter": "",
+      "section": "2",
+      "title": "",
+      "content": "海关统计是海关依法对进出口货物贸易的统计，是国民经济统计的组成部分。\n海关统计的任务是对进出口货物贸易进行统计调查、统计分析和统计监督，进行进出口监测预警，编制、管理和公布海关统计资料，提供统计服务。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "3",
+      "chapter": "",
+      "section": "3",
+      "title": "",
+      "content": "海关总署负责组织、管理全国海关统计工作。\n海关统计机构、统计人员应当依照《中华人民共和国统计法》、《中华人民共和国统计法实施条例》及本条例的规定履行职责。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "4",
+      "chapter": "",
+      "section": "4",
+      "title": "",
+      "content": "实际进出境并引起境内物质存量增加或者减少的货物，列入海关统计。\n进出境物品超过自用、合理数量的，列入海关统计。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "5",
+      "chapter": "",
+      "section": "5",
+      "title": "",
+      "content": "下列进出口货物不列入海关统计：\n（一）过境、转运和通运货物；\n（二）暂时进出口货物；\n（三）货币及货币用黄金；\n（四）租赁期1年以下的租赁进出口货物；\n（五）因残损、短少、品质不良或者规格不符而免费补偿或者更换的进出口货物；\n（六）海关总署规定的不列入海关统计的其他货物。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "6",
+      "chapter": "",
+      "section": "6",
+      "title": "",
+      "content": "进出口货物的统计项目包括：\n（一）品名及编码；\n（二）数量、价格；\n（三）进出口货物收发货人；\n（四）贸易方式；\n（五）运输方式；\n（六）进口货物的原产国（地区）、启运国（地区）、境内目的地；\n（七）出口货物的最终目的国（地区）、运抵国（地区）、境内货源地；\n（八）进出口日期；\n（九）关别；\n（十）海关总署规定的其他统计项目。\n根据国民经济发展和海关监管需要，海关总署可以对统计项目进行调整。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "7",
+      "chapter": "",
+      "section": "7",
+      "title": "",
+      "content": "进出口货物的品名及编码，按照《中华人民共和国海关统计商品目录》归类统计。\n进出口货物的数量，按照《中华人民共和国海关统计商品目录》规定的计量单位统计。\n《中华人民共和国海关统计商品目录》由海关总署公布。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "8",
+      "chapter": "",
+      "section": "8",
+      "title": "",
+      "content": "进口货物的价格，按照货价、货物运抵中华人民共和国境内输入地点起卸前的运输及其相关费用、保险费之和统计。\n出口货物的价格，按照货价、货物运抵中华人民共和国境内输出地点装卸前的运输及其相关费用、保险费之和统计，其中包含的出口关税税额，应当予以扣除。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "9",
+      "chapter": "",
+      "section": "9",
+      "title": "",
+      "content": "进口货物，应当分别统计其原产国（地区）、启运国（地区）和境内目的地。\n出口货物，应当分别统计其最终目的国（地区）、运抵国（地区）和境内货源地。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "10",
+      "chapter": "",
+      "section": "10",
+      "title": "",
+      "content": "进出口货物收发货人，按照从事进出口经营活动的法人、其他组织或者个人统计。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "11",
+      "chapter": "",
+      "section": "11",
+      "title": "",
+      "content": "进出口货物的贸易方式，按照海关监管要求分类统计。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "12",
+      "chapter": "",
+      "section": "12",
+      "title": "",
+      "content": "进出口货物的运输方式，按照货物进出境时的运输方式统计，包括水路运输、铁路运输、公路运输、航空运输及其他运输方式。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "13",
+      "chapter": "",
+      "section": "13",
+      "title": "",
+      "content": "进口货物的日期，按照海关放行的日期统计；出口货物的日期，按照办结海关手续的日期统计。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "14",
+      "chapter": "",
+      "section": "14",
+      "title": "",
+      "content": "进出口货物由接受申报的海关负责统计。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "15",
+      "chapter": "",
+      "section": "15",
+      "title": "",
+      "content": "海关统计资料包括海关统计原始资料以及以原始资料为基础采集、整理的相关统计信息。\n前款所称海关统计原始资料，是指经海关确认的进出口货物报关单及其他有关单证。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "16",
+      "chapter": "",
+      "section": "16",
+      "title": "",
+      "content": "海关总署应当定期、无偿地向国务院有关部门提供有关综合统计资料。\n直属海关应当定期、无偿地向所在地省、自治区、直辖市人民政府有关部门提供有关综合统计资料。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "17",
+      "chapter": "",
+      "section": "17",
+      "title": "",
+      "content": "海关应当建立统计资料定期公布制度，向社会公布海关统计信息。\n海关可以根据社会公众的需要，提供统计服务。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "18",
+      "chapter": "",
+      "section": "18",
+      "title": "",
+      "content": "海关统计人员对在统计过程中知悉的国家秘密、商业秘密负有保密义务。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "19",
+      "chapter": "",
+      "section": "19",
+      "title": "",
+      "content": "当事人有权在保存期限内查询自己申报的海关统计原始资料及相关信息，对查询结果有疑问的，可以向海关申请核实，海关应当予以核实，并解答有关问题。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "20",
+      "chapter": "",
+      "section": "20",
+      "title": "",
+      "content": "海关对当事人依法应当申报的项目有疑问的，可以向当事人提出查询，当事人应当及时作出答复。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "21",
+      "chapter": "",
+      "section": "21",
+      "title": "",
+      "content": "依法应当申报的项目未申报或者申报不实影响海关统计准确性的，海关应当责令当事人予以更正，需要予以行政处罚的，依照《中华人民共和国海关行政处罚实施条例》的规定予以处罚。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "22",
+      "chapter": "",
+      "section": "22",
+      "title": "",
+      "content": "本条例自2006年3月1日起施行。",
+      "language": "zh"
+    }
+  ],
+  "definitions": [],
+  "eu_references": []
+}
