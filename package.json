@@ -1,8 +1,8 @@
 {
   "name": "@ansvar/chinese-law-mcp",
   "mcpName": "eu.ansvar/chinese-law-mcp",
-  "version": "2.1.0",
-  "description": "Chinese law MCP server — 1,184 national laws and administrative regulations with 62,648 provisions from NPC National Law Database (flk.npc.gov.cn). Full-text search, EU cross-references, citation validation. Part of Ansvar Open Law (ansvar.eu/open-law) and the Ansvar MCP Network (ansvar.ai/mcp).",
+  "version": "2.2.0",
+  "description": "Chinese law MCP server — 1,184 national laws and administrative regulations with 62,648 provisions from NPC National Law Database (flk.npc.gov.cn). Full-text search, citation validation, legal stance builder. Part of Ansvar Open Law (ansvar.eu/open-law) and the Ansvar MCP Network (ansvar.ai/mcp).",
   "type": "module",
   "main": "dist/index.js",
   "bin": {

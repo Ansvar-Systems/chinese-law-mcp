@@ -21,7 +21,7 @@ import { detectCapabilities, readDbMetadata } from './capabilities.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SERVER_NAME = 'chinese-law-mcp';
-const SERVER_VERSION = '2.1.0';
+const SERVER_VERSION = '2.2.0';
 const DB_ENV_VAR = 'CHINESE_LAW_DB_PATH';
 
 function resolveDbPath(): string {
