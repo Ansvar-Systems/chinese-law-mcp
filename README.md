@@ -122,8 +122,6 @@ Once connected, just ask naturally:
 - *"Find provisions about反垄断 (anti-monopoly) in Chinese law"*
 - *"Validate this citation: 民法典 第一条"*
 - *"Build a legal stance on data breach notification requirements"*
-- *"Which Chinese laws relate to EU data protection directives?"*
-
 ---
 
 ## What's Included
@@ -133,7 +131,6 @@ Once connected, just ask naturally:
 | **National Laws** | 385 statutes | Constitution, constitutional-related, civil & commercial, administrative, economic, social, criminal, procedural |
 | **Administrative Regulations** | 799 regulations | State Council administrative regulations (行政法规) |
 | **Provisions** | 62,648 articles | Full-text searchable with FTS5 |
-| **EU Cross-References** | Included | Mapping Chinese laws to corresponding EU directives |
 | **Database Size** | ~51 MB | Optimized SQLite, portable |
 | **Daily Updates** | Automated | Freshness checks against NPC database |
 
@@ -183,7 +180,6 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 | Download DOCX files one at a time | Get the exact provision with context |
 | Manual cross-referencing between laws | `build_legal_stance` aggregates across sources |
 | "Is this statute still in force?" → check manually | `check_currency` tool → answer in seconds |
-| Find EU equivalents → dig through EUR-Lex | `get_eu_basis` → linked EU directives instantly |
 | Check multiple sources for updates | Daily automated freshness checks |
 | No API, no integration | MCP protocol → AI-native |
 
@@ -193,9 +189,7 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 
 ---
 
-## Available Tools (13)
-
-### Core Legal Research Tools (8)
+## Available Tools (8)
 
 | Tool | Description |
 |------|-------------|
@@ -208,16 +202,6 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 | `check_currency` | Check if statute is in force, amended, or repealed |
 | `about` | Server info, capabilities, and coverage summary |
 
-### EU/International Law Integration Tools (5)
-
-| Tool | Description |
-|------|-------------|
-| `get_eu_basis` | Get EU directives/regulations for Chinese statute |
-| `get_chinese_implementations` | Find Chinese laws implementing EU act |
-| `search_eu_implementations` | Search EU documents with Chinese implementation counts |
-| `get_provision_eu_basis` | Get EU law references for specific provision |
-| `validate_eu_compliance` | Check implementation status of EU directives |
-
 ---
 
 ## Data Sources & Freshness
@@ -225,7 +209,6 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 All content is sourced from authoritative Chinese legal databases:
 
 - **[NPC National Law Database (flk.npc.gov.cn)](https://flk.npc.gov.cn)** -- Official National People's Congress database with full DOCX downloads
-- **[EUR-Lex](https://eur-lex.europa.eu/)** -- Official EU law database (metadata for cross-references)
 
 ### Census-First Ingestion
 
@@ -273,7 +256,6 @@ See [SECURITY.md](SECURITY.md) for the full policy and vulnerability reporting.
 > - This is a **research tool**, not a substitute for professional legal counsel
 > - **Only the Chinese-language text is legally binding** -- English queries return Chinese provisions
 > - **Verify critical citations** against primary sources for court filings
-> - **EU cross-references** are for comparative reference, not compliance mapping
 
 **Before using professionally, read:** [DISCLAIMER.md](DISCLAIMER.md) | [PRIVACY.md](PRIVACY.md)
 
@@ -368,10 +350,9 @@ Priority areas:
 ## Roadmap
 
 - [x] **Full corpus ingestion** -- Census-first: 1,184 laws, 62,648 provisions from NPC DOCX files (v2.0.0)
-- [x] **EU/international law cross-references**
 - [x] **Vercel Streamable HTTP deployment**
 - [x] **npm package publication**
-- [x] **Golden standard** -- 13 tools, 6-layer security CI/CD, open source files
+- [x] **Golden standard** -- 8 tools, 6-layer security CI/CD, open source files
 - [ ] Judicial interpretations (Supreme People's Court)
 - [ ] Departmental rules (Ministry-level regulations)
 - [ ] Historical statute versions (amendment tracking)
@@ -402,7 +383,6 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 ### Data Licenses
 
 - **Laws & Regulations:** Chinese Government (public domain -- 中华人民共和国政府公开信息)
-- **EU Metadata:** EUR-Lex (EU public domain)
 
 ---
 

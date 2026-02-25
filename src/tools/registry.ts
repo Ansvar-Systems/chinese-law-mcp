@@ -18,11 +18,6 @@ import { validateCitationTool, ValidateCitationInput } from './validate-citation
 import { buildLegalStance, BuildLegalStanceInput } from './build-legal-stance.js';
 import { formatCitationTool, FormatCitationInput } from './format-citation.js';
 import { checkCurrency, CheckCurrencyInput } from './check-currency.js';
-import { getEUBasis, GetEUBasisInput } from './get-eu-basis.js';
-import { getChineseImplementations, GetChineseImplementationsInput } from './get-chinese-implementations.js';
-import { searchEUImplementations, SearchEUImplementationsInput } from './search-eu-implementations.js';
-import { getProvisionEUBasis, GetProvisionEUBasisInput } from './get-provision-eu-basis.js';
-import { validateEUCompliance, ValidateEUComplianceInput } from './validate-eu-compliance.js';
 import { getAbout, type AboutContext } from './about.js';
 export type { AboutContext } from './about.js';
 
@@ -216,143 +211,6 @@ export const TOOLS: Tool[] = [
       required: ['document_id'],
     },
   },
-  {
-    name: 'get_eu_basis',
-    description:
-      'Get EU/international legal basis for a Chinese law. Returns EU instruments that the Chinese law ' +
-      'relates to or parallels, including CELEX numbers and relationship type. ' +
-      'Note: EU cross-reference data is a scaffold — results may be empty for most laws.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        document_id: {
-          type: 'string',
-          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL", "网络安全法")',
-        },
-        include_articles: {
-          type: 'boolean',
-          description: 'Include specific EU article references in the response (default: false)',
-          default: false,
-        },
-        reference_types: {
-          type: 'array',
-          items: {
-            type: 'string',
-            enum: ['implements', 'supplements', 'applies', 'references', 'complies_with', 'derogates_from', 'amended_by', 'repealed_by', 'cites_article'],
-          },
-          description: 'Filter by reference type. Omit to return all types.',
-        },
-      },
-      required: ['document_id'],
-    },
-  },
-  {
-    name: 'get_chinese_implementations',
-    description:
-      'Find Chinese laws that implement or relate to a specific EU directive or regulation. ' +
-      'Input the EU document ID in "type:year/number" format (e.g., "regulation:2016/679" for GDPR). ' +
-      'Note: EU cross-reference data is a scaffold — results may be empty.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        eu_document_id: {
-          type: 'string',
-          description: 'EU document ID in format "type:year/number" (e.g., "regulation:2016/679" for GDPR)',
-        },
-        primary_only: {
-          type: 'boolean',
-          description: 'Return only primary implementing statutes (default: false)',
-          default: false,
-        },
-        in_force_only: {
-          type: 'boolean',
-          description: 'Return only laws currently in force (default: false)',
-          default: false,
-        },
-      },
-      required: ['eu_document_id'],
-    },
-  },
-  {
-    name: 'search_eu_implementations',
-    description:
-      'Search for EU directives and regulations that have Chinese law equivalents or implementations. ' +
-      'Search by keyword (e.g., "data protection", "cybersecurity"), filter by type, or year range. ' +
-      'Note: EU cross-reference data is a scaffold — results may be limited.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'Keyword search across EU document titles (e.g., "data protection")',
-        },
-        type: {
-          type: 'string',
-          enum: ['directive', 'regulation'],
-          description: 'Filter by EU document type',
-        },
-        year_from: { type: 'number', description: 'Filter: EU documents from this year onwards' },
-        year_to: { type: 'number', description: 'Filter: EU documents up to this year' },
-        has_chinese_implementation: {
-          type: 'boolean',
-          description: 'If true, only return EU documents that have at least one Chinese law equivalent',
-        },
-        limit: {
-          type: 'number',
-          description: 'Max results (default: 20, max: 100)',
-          default: 20,
-          minimum: 1,
-          maximum: 100,
-        },
-      },
-    },
-  },
-  {
-    name: 'get_provision_eu_basis',
-    description:
-      'Get EU/international legal basis for a specific provision within a Chinese law. ' +
-      'Use this for pinpoint EU/international compliance checks at the article level. ' +
-      'Note: EU cross-reference data is a scaffold — results may be empty for most provisions.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        document_id: {
-          type: 'string',
-          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL", "网络安全法")',
-        },
-        provision_ref: {
-          type: 'string',
-          description: 'Provision reference (e.g., "4", "13")',
-        },
-      },
-      required: ['document_id', 'provision_ref'],
-    },
-  },
-  {
-    name: 'validate_eu_compliance',
-    description:
-      'Check EU/international compliance status for a Chinese law or provision. ' +
-      'Returns compliance status: compliant, partial, unclear, or not_applicable. ' +
-      'Note: EU cross-reference data is a scaffold — may return not_applicable for most laws.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        document_id: {
-          type: 'string',
-          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL")',
-        },
-        provision_ref: {
-          type: 'string',
-          description: 'Optional: check a specific provision (e.g., "4")',
-        },
-        eu_document_id: {
-          type: 'string',
-          description: 'Optional: check compliance with a specific EU document (e.g., "regulation:2016/679")',
-        },
-      },
-      required: ['document_id'],
-    },
-  },
 ];
 
 export function buildTools(context?: AboutContext): Tool[] {
@@ -397,21 +255,6 @@ export function registerTools(
           break;
         case 'check_currency':
           result = await checkCurrency(db, args as unknown as CheckCurrencyInput);
-          break;
-        case 'get_eu_basis':
-          result = await getEUBasis(db, args as unknown as GetEUBasisInput);
-          break;
-        case 'get_chinese_implementations':
-          result = await getChineseImplementations(db, args as unknown as GetChineseImplementationsInput);
-          break;
-        case 'search_eu_implementations':
-          result = await searchEUImplementations(db, args as unknown as SearchEUImplementationsInput);
-          break;
-        case 'get_provision_eu_basis':
-          result = await getProvisionEUBasis(db, args as unknown as GetProvisionEUBasisInput);
-          break;
-        case 'validate_eu_compliance':
-          result = await validateEUCompliance(db, args as unknown as ValidateEUComplianceInput);
           break;
         case 'about':
           if (context) {

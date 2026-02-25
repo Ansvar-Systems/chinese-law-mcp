@@ -36,7 +36,6 @@ interface DocumentSeed {
   description?: string;
   provisions?: ProvisionSeed[];
   definitions?: DefinitionSeed[];
-  eu_references?: EUReferenceManual[];
 }
 
 interface ProvisionSeed {
@@ -54,18 +53,6 @@ interface DefinitionSeed {
   term_en?: string;
   definition: string;
   source_provision?: string;
-}
-
-interface EUReferenceManual {
-  eu_document_id: string;
-  eu_type: 'directive' | 'regulation';
-  eu_year: number;
-  eu_number: number;
-  eu_title: string;
-  eu_short_name: string;
-  reference_type: string;
-  is_primary: boolean;
-  description?: string;
 }
 
 interface ProvisionDedupStats {
@@ -186,58 +173,6 @@ CREATE TRIGGER definitions_au AFTER UPDATE ON definitions BEGIN
   INSERT INTO definitions_fts(rowid, term, definition)
   VALUES (new.id, new.term, new.definition);
 END;
-
--- =============================================================================
--- EU / INTERNATIONAL REFERENCES SCHEMA
--- =============================================================================
-
-CREATE TABLE eu_documents (
-  id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('directive', 'regulation')),
-  year INTEGER NOT NULL CHECK (year >= 1957 AND year <= 2100),
-  number INTEGER NOT NULL CHECK (number > 0),
-  community TEXT CHECK (community IN ('EU', 'EC', 'EEC', 'Euratom')),
-  celex_number TEXT,
-  title TEXT,
-  title_en TEXT,
-  short_name TEXT,
-  adoption_date TEXT,
-  entry_into_force_date TEXT,
-  in_force BOOLEAN DEFAULT 1,
-  amended_by TEXT,
-  repeals TEXT,
-  url_eur_lex TEXT,
-  description TEXT,
-  last_updated TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_eu_documents_type_year ON eu_documents(type, year DESC);
-CREATE INDEX idx_eu_documents_celex ON eu_documents(celex_number);
-
-CREATE TABLE eu_references (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  source_type TEXT NOT NULL CHECK (source_type IN ('provision', 'document', 'case_law')),
-  source_id TEXT NOT NULL,
-  document_id TEXT NOT NULL REFERENCES legal_documents(id),
-  provision_id INTEGER REFERENCES legal_provisions(id),
-  eu_document_id TEXT NOT NULL REFERENCES eu_documents(id),
-  eu_article TEXT,
-  reference_type TEXT NOT NULL CHECK (reference_type IN (
-    'implements', 'supplements', 'applies', 'references', 'complies_with',
-    'derogates_from', 'amended_by', 'repealed_by', 'cites_article'
-  )),
-  reference_context TEXT,
-  full_citation TEXT,
-  is_primary_implementation BOOLEAN DEFAULT 0,
-  implementation_status TEXT CHECK (implementation_status IN ('complete', 'partial', 'pending', 'unknown')),
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  last_verified TEXT,
-  UNIQUE(source_id, eu_document_id, eu_article)
-);
-
-CREATE INDEX idx_eu_references_document ON eu_references(document_id, eu_document_id);
-CREATE INDEX idx_eu_references_eu_document ON eu_references(eu_document_id, document_id);
-CREATE INDEX idx_eu_references_provision ON eu_references(provision_id, eu_document_id);
 
 -- Build metadata
 CREATE TABLE db_metadata (
@@ -383,20 +318,6 @@ function buildDatabase(): void {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  const insertEuDocument = db.prepare(`
-    INSERT OR IGNORE INTO eu_documents
-      (id, type, year, number, community, title, short_name, url_eur_lex, description)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const insertEuReference = db.prepare(`
-    INSERT OR IGNORE INTO eu_references
-      (source_type, source_id, document_id, provision_id, eu_document_id, eu_article,
-       reference_type, reference_context, full_citation, is_primary_implementation,
-       implementation_status, last_verified)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
   // Load seed files
   if (!fs.existsSync(SEED_DIR)) {
     console.log(`No seed directory at ${SEED_DIR} — creating empty database.`);
@@ -421,8 +342,6 @@ function buildDatabase(): void {
   let totalDuplicateRefs = 0;
   let totalConflictingDuplicates = 0;
   let emptyDocs = 0;
-  let totalEuDocuments = 0;
-  let totalEuReferences = 0;
 
   const loadAll = db.transaction(() => {
     for (const file of seedFiles) {
@@ -473,47 +392,6 @@ function buildDatabase(): void {
         }
       }
 
-      // Manual EU/international references
-      if (seed.eu_references) {
-        for (const ref of seed.eu_references) {
-          const eurLexType = ref.eu_type === 'regulation' ? 'reg' : 'dir';
-          const eurLexUrl = `https://eur-lex.europa.eu/eli/${eurLexType}/${ref.eu_year}/${ref.eu_number}/oj`;
-
-          insertEuDocument.run(
-            ref.eu_document_id,
-            ref.eu_type,
-            ref.eu_year,
-            ref.eu_number,
-            'EU',
-            ref.eu_title,
-            ref.eu_short_name,
-            eurLexUrl,
-            ref.description ?? 'Cross-reference from Chinese law',
-          );
-          totalEuDocuments++;
-
-          try {
-            insertEuReference.run(
-              'document',
-              seed.id,
-              seed.id,
-              null,
-              ref.eu_document_id,
-              null,
-              ref.reference_type,
-              ref.description ?? null,
-              `${ref.eu_short_name} (${ref.eu_type} ${ref.eu_year}/${ref.eu_number})`,
-              ref.is_primary ? 1 : 0,
-              ref.is_primary ? 'complete' : 'unknown',
-              new Date().toISOString(),
-            );
-            totalEuReferences++;
-          } catch {
-            // Ignore duplicate reference violations
-          }
-        }
-      }
-
       for (const def of seed.definitions ?? []) {
         insertDefinition.run(
           seed.id,
@@ -538,7 +416,7 @@ function buildDatabase(): void {
   const size = fs.statSync(DB_PATH).size;
   console.log(
     `\nBuild complete: ${totalDocs} documents, ${totalProvisions} provisions, ` +
-    `${totalDefs} definitions, ${totalEuDocuments} EU documents, ${totalEuReferences} EU references`
+    `${totalDefs} definitions`
   );
   if (emptyDocs > 0) {
     console.log(`  ${emptyDocs} documents with no provisions.`);

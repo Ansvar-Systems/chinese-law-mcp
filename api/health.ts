@@ -14,7 +14,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       version: SERVER_VERSION,
       node_version: process.version,
       transport: ['stdio', 'streamable-http'],
-      capabilities: ['statutes', 'eu_cross_references'],
+      capabilities: ['statutes'],
       tier: 'free',
       source_schema_version: '1.0',
       repo_url: REPO_URL,
@@ -32,7 +32,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       max_age_days: FRESHNESS_MAX_DAYS,
       note: 'Full corpus: 1,184 laws, 62,648 provisions from flk.npc.gov.cn (bundled database)',
     },
-    capabilities: ['statutes', 'eu_cross_references'],
+    capabilities: ['statutes'],
     tier: 'free',
   });
 }
