@@ -199,7 +199,6 @@ async function main(): Promise<void> {
         issuing_body: entry.issuing_body,
         provisions: parsed.provisions,
         definitions: [],
-        eu_references: [],
       };
 
       fs.writeFileSync(seedFile, JSON.stringify(seed, null, 2));
@@ -250,7 +249,6 @@ function writeMinimalSeed(seedFile: string, entry: CensusEntry): void {
     issuing_body: entry.issuing_body,
     provisions: [],
     definitions: [],
-    eu_references: [],
   };
   fs.writeFileSync(seedFile, JSON.stringify(seed, null, 2));
 }

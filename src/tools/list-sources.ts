@@ -13,7 +13,6 @@ export interface ListSourcesResult {
     url: string;
     license: string;
     coverage: string;
-    languages: string[];
   }>;
   database: {
     tier: string;
@@ -21,7 +20,6 @@ export interface ListSourcesResult {
     built_at: string;
     document_count: number;
     provision_count: number;
-    eu_document_count: number;
   };
   limitations: string[];
 }
@@ -47,27 +45,17 @@ function safeMetaValue(db: Database, key: string): string {
 export async function listSources(db: Database): Promise<ToolResponse<ListSourcesResult>> {
   const documentCount = safeCount(db, 'SELECT COUNT(*) as count FROM legal_documents');
   const provisionCount = safeCount(db, 'SELECT COUNT(*) as count FROM legal_provisions');
-  const euDocumentCount = safeCount(db, 'SELECT COUNT(*) as count FROM eu_documents');
 
   return {
     results: {
       jurisdiction: 'People\'s Republic of China (CN)',
       sources: [
         {
-          name: 'NPC Law Database',
+          name: 'NPC National Law Database (国家法律法规数据库)',
           authority: 'National People\'s Congress of the PRC',
-          url: 'https://www.npc.gov.cn',
+          url: 'https://flk.npc.gov.cn',
           license: 'Government Public Data',
           coverage: 'All national laws adopted by the NPC and its Standing Committee, including Constitution, cybersecurity, data protection, company law, civil code, anti-monopoly, and e-commerce legislation.',
-          languages: ['zh'],
-        },
-        {
-          name: 'NPC English Translations',
-          authority: 'National People\'s Congress of the PRC',
-          url: 'http://en.npc.gov.cn.cdurl.cn/laws.html',
-          license: 'Government Public Data (Reference Only)',
-          coverage: 'Selected major national laws translated into English. Translations are for reference only and are not legally binding.',
-          languages: ['en'],
         },
         {
           name: 'State Council / gov.cn',
@@ -75,7 +63,13 @@ export async function listSources(db: Database): Promise<ToolResponse<ListSource
           url: 'https://www.gov.cn',
           license: 'Government Public Data',
           coverage: 'Administrative regulations including CII protection, network data security management, and implementing regulations for major laws.',
-          languages: ['zh'],
+        },
+        {
+          name: 'Cyberspace Administration of China (CAC)',
+          authority: '国家互联网信息办公室',
+          url: 'https://www.cac.gov.cn',
+          license: 'Government Public Data',
+          coverage: 'Key CAC departmental rules including the Algorithm Recommendation Provisions, Deep Synthesis Provisions, Generative AI Measures, and Cybersecurity Review Measures.',
         },
       ],
       database: {
@@ -84,15 +78,13 @@ export async function listSources(db: Database): Promise<ToolResponse<ListSource
         built_at: safeMetaValue(db, 'built_at'),
         document_count: documentCount,
         provision_count: provisionCount,
-        eu_document_count: euDocumentCount,
       },
       limitations: [
-        `Covers ${documentCount.toLocaleString()} Chinese laws and regulations.`,
-        'The Chinese text is the sole legally binding version. English translations are for reference only.',
+        `Covers ${documentCount.toLocaleString()} Chinese laws and administrative regulations (NPC + State Council).`,
+        'Content is in Chinese — the sole legally binding language under PRC law.',
+        'CAC departmental rules coverage is limited to key AI/cybersecurity regulations. Other ministry rules (MIIT, SAMR, etc.) are not yet included.',
         'Judicial interpretations by the Supreme People\'s Court require professional tier.',
-        'Departmental rules from specific ministries require professional tier.',
         'Content may lag behind the PRC Official Gazette.',
-        'EU/international cross-references are maintained for key regulatory equivalences (PIPL-GDPR, CSL-NIS2, etc.).',
         'Always verify against official NPC or State Council publications when legal certainty is required.',
       ],
     },

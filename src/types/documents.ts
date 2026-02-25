@@ -1,4 +1,4 @@
-export type DocumentType = 'statute' | 'administrative_regulation' | 'judicial_interpretation';
+export type DocumentType = 'statute' | 'administrative_regulation' | 'judicial_interpretation' | 'departmental_rule';
 export type DocumentStatus = 'in_force' | 'amended' | 'repealed' | 'not_yet_in_force';
 
 export interface LegalDocument {

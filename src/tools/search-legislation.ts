@@ -13,7 +13,6 @@ export interface SearchLegislationInput {
   query: string;
   document_id?: string;
   status?: string;
-  language?: string;
   as_of_date?: string;
   limit?: number;
 }
@@ -27,7 +26,6 @@ export interface SearchLegislationResult {
   title: string | null;
   snippet: string;
   relevance: number;
-  language: string | null;
 }
 
 const DEFAULT_LIMIT = 10;
@@ -62,8 +60,7 @@ export async function searchLegislation(
       lp.section,
       lp.title,
       snippet(provisions_fts, 0, '>>>', '<<<', '...', 32) as snippet,
-      bm25(provisions_fts) as relevance,
-      lp.language
+      bm25(provisions_fts) as relevance
     FROM provisions_fts
     JOIN legal_provisions lp ON lp.id = provisions_fts.rowid
     JOIN legal_documents ld ON ld.id = lp.document_id
@@ -80,11 +77,6 @@ export async function searchLegislation(
   if (input.status) {
     sql += ` AND ld.status = ?`;
     params.push(input.status);
-  }
-
-  if (input.language) {
-    sql += ` AND lp.language = ?`;
-    params.push(input.language);
   }
 
   sql += ` ORDER BY relevance LIMIT ?`;
@@ -121,8 +113,7 @@ function searchWithLike(
       lp.section,
       lp.title,
       substr(lp.content, 1, 200) as snippet,
-      0 as relevance,
-      lp.language
+      0 as relevance
     FROM legal_provisions lp
     JOIN legal_documents ld ON ld.id = lp.document_id
     WHERE lp.content LIKE ?
@@ -138,11 +129,6 @@ function searchWithLike(
   if (input.status) {
     sql += ` AND ld.status = ?`;
     params.push(input.status);
-  }
-
-  if (input.language) {
-    sql += ` AND lp.language = ?`;
-    params.push(input.language);
   }
 
   sql += ` LIMIT ?`;

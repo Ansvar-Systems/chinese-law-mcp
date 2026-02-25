@@ -10,7 +10,6 @@ import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.j
 export interface BuildLegalStanceInput {
   query: string;
   document_id?: string;
-  language?: string;
   as_of_date?: string;
   limit?: number;
 }
@@ -22,7 +21,6 @@ interface ProvisionHit {
   title: string | null;
   snippet: string;
   relevance: number;
-  language: string | null;
 }
 
 export interface LegalStanceResult {
@@ -31,7 +29,7 @@ export interface LegalStanceResult {
   total_citations: number;
 }
 
-const DEFAULT_LIMIT = 5;
+const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 20;
 
 export async function buildLegalStance(
@@ -60,8 +58,7 @@ export async function buildLegalStance(
       lp.provision_ref,
       lp.title,
       snippet(provisions_fts, 0, '>>>', '<<<', '...', 32) as snippet,
-      bm25(provisions_fts) as relevance,
-      lp.language
+      bm25(provisions_fts) as relevance
     FROM provisions_fts
     JOIN legal_provisions lp ON lp.id = provisions_fts.rowid
     JOIN legal_documents ld ON ld.id = lp.document_id
@@ -73,11 +70,6 @@ export async function buildLegalStance(
   if (input.document_id) {
     provSql += ` AND lp.document_id = ?`;
     provParams.push(input.document_id);
-  }
-
-  if (input.language) {
-    provSql += ` AND lp.language = ?`;
-    provParams.push(input.language);
   }
 
   provSql += ` ORDER BY relevance LIMIT ?`;
@@ -116,8 +108,7 @@ function buildStanceWithLike(
       lp.provision_ref,
       lp.title,
       substr(lp.content, 1, 200) as snippet,
-      0 as relevance,
-      lp.language
+      0 as relevance
     FROM legal_provisions lp
     JOIN legal_documents ld ON ld.id = lp.document_id
     WHERE lp.content LIKE ?
@@ -128,11 +119,6 @@ function buildStanceWithLike(
   if (input.document_id) {
     sql += ` AND lp.document_id = ?`;
     params.push(input.document_id);
-  }
-
-  if (input.language) {
-    sql += ` AND lp.language = ?`;
-    params.push(input.language);
   }
 
   sql += ` LIMIT ?`;

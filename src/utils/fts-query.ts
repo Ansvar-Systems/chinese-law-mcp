@@ -16,6 +16,9 @@ const MAX_QUERY_LENGTH = 1000;
 /** Minimum characters for trigram FTS5 to work */
 export const MIN_FTS_LENGTH = 3;
 
+/** Chunk size for splitting long CJK queries */
+const CJK_CHUNK_SIZE = 4;
+
 export interface FtsQueryVariants {
   primary: string;
   fallback?: string;
@@ -25,15 +28,47 @@ export interface FtsQueryVariants {
 
 /**
  * Sanitise a single token for safe inclusion in an FTS5 query.
- * Preserves CJK characters, alphanumeric, hyphens, underscores, and Unicode letters.
+ * Strips all FTS5 operators and special characters — keeps only
+ * CJK characters, alphanumeric, underscores, and Unicode letters.
+ *
+ * Hyphens are intentionally stripped because FTS5 treats `-` as NOT.
  */
 function sanitiseToken(token: string): string {
-  return token.replace(/[^\p{L}\p{N}_-]/gu, '');
+  return token.replace(/[^\p{L}\p{N}_]/gu, '');
+}
+
+/** Wrap a token in double quotes for FTS5 literal matching */
+function quoteFts(token: string): string {
+  // Double any internal quotes to escape them
+  return `"${token.replace(/"/g, '""')}"`;
 }
 
 /** Check if a string contains CJK characters */
 function hasCJK(text: string): boolean {
   return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text);
+}
+
+/**
+ * Split a CJK string into chunks for broader FTS5 matching.
+ *
+ * Long CJK queries (> CJK_CHUNK_SIZE chars) are split into non-overlapping
+ * chunks of CJK_CHUNK_SIZE and joined with OR. This dramatically improves
+ * recall: 个人信息跨境提供 → "个人信息" OR "跨境提供" catches both
+ * phrasings instead of requiring an exact 7-char substring.
+ */
+function splitCjkChunks(text: string): string[] {
+  if (text.length <= CJK_CHUNK_SIZE) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += CJK_CHUNK_SIZE) {
+    const chunk = text.slice(i, i + CJK_CHUNK_SIZE);
+    if (chunk.length >= MIN_FTS_LENGTH) {
+      chunks.push(chunk);
+    }
+  }
+  return chunks.length > 0 ? chunks : [text];
 }
 
 export function buildFtsQueryVariants(query: string): FtsQueryVariants {
@@ -48,18 +83,27 @@ export function buildFtsQueryVariants(query: string): FtsQueryVariants {
     return { primary: trimmed, use_like: true };
   }
 
-  // For CJK text: use direct substring matching (trigram handles this natively)
+  // For CJK text: split into chunks for broader matching
   if (hasCJK(trimmed)) {
-    // Sanitise but preserve CJK characters
     const sanitised = sanitiseToken(trimmed);
     if (sanitised.length < MIN_FTS_LENGTH) {
       return { primary: sanitised, use_like: true };
     }
-    // With trigram, just pass the string directly — it matches substrings
-    return { primary: sanitised, use_like: false };
+
+    const chunks = splitCjkChunks(sanitised);
+
+    if (chunks.length === 1) {
+      // Short enough to match as-is — quote for safety
+      return { primary: quoteFts(chunks[0]), use_like: false };
+    }
+
+    // Multiple chunks: OR for recall, exact string as fallback for precision
+    const primary = chunks.map(quoteFts).join(' OR ');
+    const fallback = quoteFts(sanitised);
+    return { primary, fallback, use_like: false };
   }
 
-  // For non-CJK (English) text: tokenize and build OR query
+  // For non-CJK text: tokenize, sanitise, and quote each token
   const tokens = trimmed
     .split(/\s+/)
     .filter(t => t.length > 0)
@@ -71,7 +115,7 @@ export function buildFtsQueryVariants(query: string): FtsQueryVariants {
     return { primary: trimmed, use_like: true };
   }
 
-  // Join with OR for broader matching
-  const primary = tokens.join(' OR ');
+  // Quote each token to prevent FTS5 operator interpretation
+  const primary = tokens.map(quoteFts).join(' OR ');
   return { primary, use_like: false };
 }

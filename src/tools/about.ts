@@ -60,28 +60,23 @@ export function getAbout(
       built: context.dbBuilt,
       jurisdiction: 'People\'s Republic of China (CN)',
       content_basis:
-        'Chinese law text from npc.gov.cn and gov.cn official sources. ' +
-        'Covers cybersecurity, data protection, commercial, and competition law. ' +
-        'English translations from NPC English portal (reference only, not legally binding).',
+        'Chinese law text from flk.npc.gov.cn (NPC National Law Database) and gov.cn (State Council). ' +
+        'Covers national laws and administrative regulations in cybersecurity, data protection, commercial, and competition law.',
       counts: {
         legal_documents: safeCount(db, 'SELECT COUNT(*) as count FROM legal_documents'),
         legal_provisions: safeCount(db, 'SELECT COUNT(*) as count FROM legal_provisions'),
-        eu_documents: safeCount(db, 'SELECT COUNT(*) as count FROM eu_documents'),
-        eu_references: safeCount(db, 'SELECT COUNT(*) as count FROM eu_references'),
       },
     },
     provenance: {
       sources: [
-        'npc.gov.cn (National People\'s Congress — national laws)',
+        'flk.npc.gov.cn (NPC National Law Database — national laws)',
         'gov.cn (State Council — administrative regulations)',
-        'en.npc.gov.cn (NPC English translations — reference only)',
       ],
       license:
         'Apache-2.0 (server code). Law text is public domain under Chinese law.',
       authenticity_note:
         'Law text is derived from official NPC and State Council publications. ' +
-        'The Chinese text is the sole legally binding version. English translations are marked ' +
-        '"Translation for Reference Only" by the NPC. Content may lag behind PRC Official Gazette. ' +
+        'The Chinese text is the sole legally binding version. Content may lag behind PRC Official Gazette. ' +
         'Verify against official publications when legal certainty is required.',
     },
     security: {

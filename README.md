@@ -9,9 +9,9 @@
 [![CI](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/ci.yml)
 [![Daily Data Check](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/check-updates.yml/badge.svg)](https://github.com/Ansvar-Systems/chinese-law-mcp/actions/workflows/check-updates.yml)
 [![Database](https://img.shields.io/badge/database-pre--built-green)](#whats-included)
-[![Provisions](https://img.shields.io/badge/provisions-62%2C648-blue)](#whats-included)
+[![Provisions](https://img.shields.io/badge/provisions-62%2C981-blue)](#whats-included)
 
-Query **1,184 Chinese laws and administrative regulations** -- from 个人信息保护法 and 网络安全法 to 民法典, 公司法, and more -- directly from Claude, Cursor, or any MCP-compatible client.
+Query **1,188 Chinese laws, administrative regulations, and departmental rules** -- from 个人信息保护法 and 网络安全法 to 民法典, 公司法, and CAC AI regulations -- directly from Claude, Cursor, or any MCP-compatible client.
 
 If you're building legal tech, compliance tools, or doing Chinese legal research, this is your verified reference database.
 
@@ -118,7 +118,7 @@ Once connected, just ask naturally:
 - *"个人信息保护法第四条说了什么？"* (What does Article 4 of PIPL say?)
 - *"搜索关于数据安全的规定"* (Search for provisions about data security)
 - *"网络安全法是否仍然有效？"* (Is the Cybersecurity Law still in force?)
-- *"What are the consent requirements under China's PIPL?"*
+- *"算法推荐管理规定对推荐算法有什么要求？"* (What does the Algorithm Recommendation Provisions require?)
 - *"Find provisions about反垄断 (anti-monopoly) in Chinese law"*
 - *"Validate this citation: 民法典 第一条"*
 - *"Build a legal stance on data breach notification requirements"*
@@ -130,7 +130,8 @@ Once connected, just ask naturally:
 |----------|-------|---------|
 | **National Laws** | 385 statutes | Constitution, constitutional-related, civil & commercial, administrative, economic, social, criminal, procedural |
 | **Administrative Regulations** | 799 regulations | State Council administrative regulations (行政法规) |
-| **Provisions** | 62,648 articles | Full-text searchable with FTS5 |
+| **CAC Departmental Rules** | 4 rules | Key AI/cybersecurity regulations from the Cyberspace Administration of China |
+| **Provisions** | 62,981 articles | Full-text searchable with FTS5 |
 | **Database Size** | ~51 MB | Optimized SQLite, portable |
 | **Daily Updates** | Automated | Freshness checks against NPC database |
 
@@ -147,9 +148,10 @@ Once connected, just ask naturally:
 | Criminal | 刑法 | 7 |
 | Procedural | 诉讼与非诉讼程序法 | 15 |
 | Administrative Regulations | 行政法规 | 799 |
-| **Total** | | **1,272 enumerated (1,184 ingestable)** |
+| CAC Departmental Rules | 部门规章 (CAC) | 4 |
+| **Total** | | **1,276 enumerated (1,188 ingestable)** |
 
-**Verified data only** -- every provision is extracted from official DOCX files downloaded from the NPC National Law Database (flk.npc.gov.cn). Zero LLM-generated content.
+**Verified data only** -- every provision is extracted from official sources: NPC National Law Database DOCX files (flk.npc.gov.cn) and CAC published regulations (cac.gov.cn). Zero LLM-generated content.
 
 ---
 
@@ -167,9 +169,10 @@ Once connected, just ask naturally:
 
 **Technical Architecture:**
 ```
-NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLite → FTS5 snippet() → MCP response
-                                                      ↑                           ↑
-                                              第X条 regex parser          Verbatim database query
+NPC FLK Database → DOCX Download → mammoth HTML ─┐
+                                                  ├→ Article Parser → SQLite → FTS5 snippet() → MCP response
+CAC (cac.gov.cn) → HTML Fetch ───────────────────┘        ↑                           ↑
+                                                   第X条 regex parser          Verbatim database query
 ```
 
 ### Traditional Research vs. This MCP
@@ -193,9 +196,9 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 
 | Tool | Description |
 |------|-------------|
-| `search_legislation` | FTS5 search on 62,648 provisions with BM25 ranking |
+| `search_legislation` | FTS5 search on 62,981 provisions with BM25 ranking |
 | `get_provision` | Retrieve specific provision by law name + article number |
-| `list_sources` | List all 1,184 available laws with metadata |
+| `list_sources` | List all 1,188 available laws with metadata |
 | `validate_citation` | Validate citation against database (zero-hallucination check) |
 | `build_legal_stance` | Aggregate citations from statutes for a legal topic |
 | `format_citation` | Format citations per Chinese conventions (full/short/pinpoint) |
@@ -209,17 +212,19 @@ NPC FLK Database → DOCX Download → mammoth HTML → Article Parser → SQLit
 All content is sourced from authoritative Chinese legal databases:
 
 - **[NPC National Law Database (flk.npc.gov.cn)](https://flk.npc.gov.cn)** -- Official National People's Congress database with full DOCX downloads
+- **[State Council / gov.cn](https://www.gov.cn)** -- Administrative regulations from the State Council
+- **[CAC (cac.gov.cn)](https://www.cac.gov.cn)** -- Key departmental rules from the Cyberspace Administration of China (Algorithm Recommendation Provisions, Deep Synthesis Provisions, Generative AI Measures, Cybersecurity Review Measures)
 
 ### Census-First Ingestion
 
-The entire NPC National Law Database was enumerated via the FLK search API across 9 legal categories. Each law's official DOCX file was downloaded, converted to HTML via mammoth, and parsed article-by-article using Chinese legal numbering patterns (第X条).
+The entire NPC National Law Database was enumerated via the FLK search API across 9 legal categories. Each law's official DOCX file was downloaded, converted to HTML via mammoth, and parsed article-by-article using Chinese legal numbering patterns (第X条). CAC departmental rules are fetched directly from cac.gov.cn and parsed from their HTML pages.
 
 | Metric | Value |
 |--------|-------|
-| **Total laws enumerated** | 1,272 |
-| **Ingestable (in force + amended)** | 1,184 |
+| **Total laws enumerated** | 1,276 |
+| **Ingestable (in force + amended)** | 1,188 |
 | **Excluded (repealed)** | 88 |
-| **Provisions extracted** | 62,648 |
+| **Provisions extracted** | 62,981 |
 | **Ingestion success rate** | 99.9% (1 network timeout) |
 | **Corpus date** | 2026-02-25 |
 
@@ -254,7 +259,7 @@ See [SECURITY.md](SECURITY.md) for the full policy and vulnerability reporting.
 >
 > Statute text is sourced from the official NPC National Law Database (flk.npc.gov.cn). However:
 > - This is a **research tool**, not a substitute for professional legal counsel
-> - **Only the Chinese-language text is legally binding** -- English queries return Chinese provisions
+> - **Only the Chinese-language text is legally binding** under PRC law
 > - **Verify critical citations** against primary sources for court filings
 
 **Before using professionally, read:** [DISCLAIMER.md](DISCLAIMER.md) | [PRIVACY.md](PRIVACY.md)
@@ -300,6 +305,7 @@ npx @anthropic/mcp-inspector node dist/index.js   # Test with MCP Inspector
 
 ```bash
 npm run ingest                    # Census-driven full corpus ingestion from flk.npc.gov.cn
+npm run ingest:cac                # Ingest CAC departmental rules from cac.gov.cn
 npm run build:db                  # Rebuild SQLite database from seed files
 npm run check-updates             # Check NPC database for amendments
 npm run drift:detect              # Detect data drift against census
@@ -311,7 +317,7 @@ npm run test:contract             # Run golden contract tests
 
 - **Search Speed:** <100ms for most FTS5 queries
 - **Database Size:** ~51 MB (efficient, portable)
-- **Ingestion:** Census-first -- 1,272 laws enumerated, 1,184 ingested
+- **Ingestion:** Census-first -- 1,276 laws enumerated, 1,188 ingested
 
 ---
 
@@ -341,9 +347,8 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Priority areas:
 - Judicial interpretation expansion (Supreme People's Court)
-- Departmental rules (Ministry-level regulations)
+- Additional departmental rules (MIIT, SAMR, and other ministries)
 - Historical statute versions and amendment tracking
-- English translation integration
 
 ---
 
@@ -353,10 +358,11 @@ Priority areas:
 - [x] **Vercel Streamable HTTP deployment**
 - [x] **npm package publication**
 - [x] **Golden standard** -- 8 tools, 6-layer security CI/CD, open source files
+- [x] **CAC departmental rules** -- 4 key AI/cybersecurity regulations from cac.gov.cn (v3.0.0)
+- [x] **Chinese-native focus** -- Removed English/EU layers, pure Chinese legal text (v3.0.0)
 - [ ] Judicial interpretations (Supreme People's Court)
-- [ ] Departmental rules (Ministry-level regulations)
+- [ ] Additional departmental rules (MIIT, SAMR, other ministries)
 - [ ] Historical statute versions (amendment tracking)
-- [ ] English translation integration
 
 ---
 
@@ -370,7 +376,7 @@ If you use this MCP server in academic research:
   title = {Chinese Law MCP Server: Production-Grade Legal Research Tool},
   year = {2026},
   url = {https://github.com/Ansvar-Systems/chinese-law-mcp},
-  note = {Comprehensive Chinese legal database with 1,184 laws and 62,648 provisions from NPC National Law Database}
+  note = {Comprehensive Chinese legal database with 1,188 laws and 62,981 provisions from NPC National Law Database and CAC}
 }
 ```
 
@@ -390,7 +396,7 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 
 We build AI-accelerated compliance and legal research tools for the global market. This MCP server started as our internal reference tool -- turns out everyone building compliance tools has the same research frustrations.
 
-So we're open-sourcing it. Navigating 1,184 Chinese laws shouldn't require a law degree.
+So we're open-sourcing it. Navigating 1,188 Chinese laws shouldn't require a law degree.
 
 **[ansvar.eu](https://ansvar.eu)** -- Stockholm, Sweden
 

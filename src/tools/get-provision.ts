@@ -12,7 +12,6 @@ export interface GetProvisionInput {
   article?: string;
   section?: string;
   provision_ref?: string;
-  language?: string;
 }
 
 export interface ProvisionResult {
@@ -25,7 +24,6 @@ export interface ProvisionResult {
   section: string;
   title: string | null;
   content: string;
-  language: string | null;
 }
 
 interface ProvisionRow {
@@ -38,7 +36,6 @@ interface ProvisionRow {
   section: string;
   title: string | null;
   content: string;
-  language: string | null;
 }
 
 const MAX_ALL_PROVISIONS = 200;
@@ -72,18 +69,12 @@ export async function getProvision(
         lp.chapter,
         lp.section,
         lp.title,
-        lp.content,
-        lp.language
+        lp.content
       FROM legal_provisions lp
       JOIN legal_documents ld ON ld.id = lp.document_id
       WHERE lp.document_id = ?
     `;
     const params: (string | number)[] = [resolvedDocumentId];
-
-    if (input.language) {
-      sql += ` AND lp.language = ?`;
-      params.push(input.language);
-    }
 
     sql += ` ORDER BY lp.id LIMIT ?`;
     params.push(MAX_ALL_PROVISIONS);
@@ -117,18 +108,12 @@ export async function getProvision(
       lp.chapter,
       lp.section,
       lp.title,
-      lp.content,
-      lp.language
+      lp.content
     FROM legal_provisions lp
     JOIN legal_documents ld ON ld.id = lp.document_id
     WHERE lp.document_id = ? AND (lp.provision_ref = ? OR lp.section = ?)
   `;
   const params: (string | number)[] = [resolvedDocumentId, provisionRef, provisionRef];
-
-  if (input.language) {
-    sql += ` AND lp.language = ?`;
-    params.push(input.language);
-  }
 
   const row = db.prepare(sql).get(...params) as ProvisionRow | undefined;
 

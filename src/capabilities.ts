@@ -7,13 +7,11 @@ import type Database from '@ansvar/mcp-sqlite';
 
 export type Capability =
   | 'core_legislation'
-  | 'eu_references'
   | 'judicial_interpretations'
   | 'departmental_rules';
 
 const TABLE_MAP: Record<Capability, string[]> = {
   core_legislation: ['legal_documents', 'legal_provisions', 'provisions_fts'],
-  eu_references: ['eu_documents', 'eu_references'],
   judicial_interpretations: ['judicial_interpretations'],
   departmental_rules: ['departmental_rules'],
 };

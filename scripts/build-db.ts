@@ -25,7 +25,7 @@ const DB_PATH = path.resolve(__dirname, '../data/database.db');
 
 interface DocumentSeed {
   id: string;
-  type: 'statute' | 'administrative_regulation';
+  type: 'statute' | 'administrative_regulation' | 'departmental_rule';
   title: string;
   title_en?: string;
   short_name?: string;
@@ -68,7 +68,7 @@ const SCHEMA = `
 -- Legal documents (laws, administrative regulations)
 CREATE TABLE legal_documents (
   id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK(type IN ('statute', 'administrative_regulation', 'judicial_interpretation')),
+  type TEXT NOT NULL CHECK(type IN ('statute', 'administrative_regulation', 'judicial_interpretation', 'departmental_rule')),
   title TEXT NOT NULL,
   title_en TEXT,
   short_name TEXT,

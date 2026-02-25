@@ -1,8 +1,8 @@
 {
   "name": "@ansvar/chinese-law-mcp",
   "mcpName": "eu.ansvar/chinese-law-mcp",
-  "version": "2.3.0",
-  "description": "Chinese law MCP server — 1,184 national laws and administrative regulations with 62,648 provisions from NPC National Law Database (flk.npc.gov.cn). Full-text search, citation validation, legal stance builder. Part of Ansvar Open Law (ansvar.eu/open-law) and the Ansvar MCP Network (ansvar.ai/mcp).",
+  "version": "3.0.0",
+  "description": "Chinese law MCP server — 1,188 national laws, administrative regulations, and departmental rules with 62,981 provisions from NPC National Law Database (flk.npc.gov.cn) and CAC (cac.gov.cn). Full-text search, citation validation, legal stance builder. Part of Ansvar Open Law (ansvar.eu/open-law) and the Ansvar MCP Network (ansvar.ai/mcp).",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -23,6 +23,7 @@
     "test:coverage": "vitest run --coverage",
     "test:contract": "vitest run __tests__/contract/",
     "ingest": "node --import tsx scripts/ingest.ts",
+    "ingest:cac": "node --import tsx scripts/ingest-cac.ts",
     "check-updates": "node --import tsx scripts/check-updates.ts",
     "drift:detect": "node --import tsx scripts/drift-detect.ts",
     "validate": "npm test && npm run test:contract",

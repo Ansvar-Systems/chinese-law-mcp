@@ -33,31 +33,27 @@ export const TOOLS: Tool[] = [
   {
     name: 'search_legislation',
     description:
-      'Search Chinese laws and regulations by keyword. Best results with Chinese queries (e.g., "个人信息", "数据出境"). ' +
+      'Search Chinese laws and regulations by keyword (e.g., "个人信息", "数据出境"). ' +
       'Returns provision-level results with relevance ranking. ' +
       'Results include: document ID, title, provision reference, snippet with >>>highlight<<< markers, and relevance score. ' +
-      'Use document_id to filter within a single statute (pass Chinese name like "网络安全法" or English abbreviation like "PIPL"). ' +
+      'Use document_id to filter within a single statute (pass Chinese name like "网络安全法" or abbreviation like "PIPL"). ' +
       'Use status to filter by in_force/amended/repealed. ' +
-      'Content is primarily in Chinese. Default limit is 10 (max 50).',
+      'Default limit is 10 (max 50).',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Search query — Chinese terms recommended (e.g., "个人信息", "数据安全"). English terms work for major laws with English metadata (e.g., "PIPL", "cybersecurity").',
+          description: 'Search query in Chinese (e.g., "个人信息", "数据安全", "反垄断").',
         },
         document_id: {
           type: 'string',
-          description: 'Filter to a specific law by Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
+          description: 'Filter to a specific law by Chinese name (e.g., "网络安全法"), abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
         },
         status: {
           type: 'string',
           enum: ['in_force', 'amended', 'repealed'],
           description: 'Filter by legislative status. Omit to search all statuses.',
-        },
-        language: {
-          type: 'string',
-          description: 'Filter by language code. Content is predominantly "zh" (Chinese).',
         },
         limit: {
           type: 'number',
@@ -75,17 +71,17 @@ export const TOOLS: Tool[] = [
     description:
       'Retrieve the full text of a specific article/provision from a Chinese law. ' +
       'Chinese provisions use article notation: 第一条 (Article 1). ' +
-      'Pass document_id as a Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), ' +
+      'Pass document_id as a Chinese name (e.g., "网络安全法"), abbreviation (e.g., "PIPL", "CSL"), ' +
       'or internal UUID. Fuzzy matching supported. ' +
       'Pass article as the Arabic number (e.g., "3") or provision_ref for exact match. ' +
-      'Returns: document ID, title, status, provision reference, and full content text (Chinese). ' +
+      'Returns: document ID, title, status, provision reference, and full content text. ' +
       'WARNING: Omitting article/provision_ref returns ALL provisions (capped at 200).',
     inputSchema: {
       type: 'object',
       properties: {
         document_id: {
           type: 'string',
-          description: 'Law identifier: Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID. Fuzzy matching supported.',
+          description: 'Law identifier: Chinese name (e.g., "网络安全法"), abbreviation (e.g., "PIPL", "CSL"), or internal UUID. Fuzzy matching supported.',
         },
         article: {
           type: 'string',
@@ -94,10 +90,6 @@ export const TOOLS: Tool[] = [
         provision_ref: {
           type: 'string',
           description: 'Direct provision reference (e.g., "3", "21"). Takes precedence over article if both provided.',
-        },
-        language: {
-          type: 'string',
-          description: 'Filter by language code. Content is predominantly "zh" (Chinese).',
         },
       },
       required: ['document_id'],
@@ -120,7 +112,7 @@ export const TOOLS: Tool[] = [
       'Validate a Chinese legal citation against the database. Supports multiple formats: ' +
       'Chinese ("第三条 网络安全法"), English ("Article 3, Cybersecurity Law"), ' +
       'Short ("Art. 3, CSL 2016"), ID-based ("csl-2016, art. 3"). ' +
-      'Returns: valid (boolean), parsed components, formatted citation in Chinese and English, ' +
+      'Returns: valid (boolean), parsed components, formatted citation, ' +
       'and warnings about repealed/amended status.',
     inputSchema: {
       type: 'object',
@@ -139,26 +131,22 @@ export const TOOLS: Tool[] = [
       'Build a comprehensive set of citations for a legal question by searching across all Chinese laws simultaneously. ' +
       'Best for broad legal research questions like "哪些中国法律规范个人数据处理?" or "数据出境安全". ' +
       'Returns aggregated provision-level results with relevance ranking. ' +
-      'Use Chinese queries for best results. English abbreviations (PIPL, CSL) work for document filtering.',
+      'Use Chinese queries for best results. Abbreviations (PIPL, CSL) work for document filtering.',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Legal question or topic to research — Chinese recommended (e.g., "个人信息处理", "数据出境安全评估")',
+          description: 'Legal question or topic to research in Chinese (e.g., "个人信息处理", "数据出境安全评估")',
         },
         document_id: {
           type: 'string',
           description: 'Optionally limit search to one law by ID or name',
         },
-        language: {
-          type: 'string',
-          description: 'Filter results by language code. Content is predominantly "zh" (Chinese).',
-        },
         limit: {
           type: 'number',
-          description: 'Max results per category (default: 5, max: 20)',
-          default: 5,
+          description: 'Max results (default: 10, max: 20)',
+          default: 10,
           minimum: 1,
           maximum: 20,
         },
@@ -201,7 +189,7 @@ export const TOOLS: Tool[] = [
       properties: {
         document_id: {
           type: 'string',
-          description: 'Law identifier: Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
+          description: 'Law identifier: Chinese name (e.g., "网络安全法"), abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
         },
         provision_ref: {
           type: 'string',
