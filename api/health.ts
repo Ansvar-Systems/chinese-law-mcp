@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const SERVER_NAME = 'chinese-law-mcp';
-const SERVER_VERSION = '2.0.0';
+const SERVER_VERSION = '2.1.0';
 const REPO_URL = 'https://github.com/Ansvar-Systems/chinese-law-mcp';
 const FRESHNESS_MAX_DAYS = 30;
 

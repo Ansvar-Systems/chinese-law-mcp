@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-02-25
+### Fixed
+- **FTS5 tokenizer**: Switched from `unicode61` to `trigram` for correct CJK substring matching. Compound term searches like `数据出境` now return results (was 0 with unicode61).
+- **build_legal_stance**: Now functional — was broken by unicode61 tokenizer producing 0 results for CJK queries.
+- **Short-form IDs**: Added English names mapping (38 major laws). `PIPL`, `CSL`, `DSL` etc. now resolve correctly in `get_provision`, `check_currency`, and other tools.
+- **LIKE fallback**: Queries shorter than 3 characters (trigram minimum) now fall back to LIKE-based search instead of returning 0 results.
+- **Tool descriptions**: Removed false claims about English query support, updated document_id examples from non-existent short IDs to real Chinese names/abbreviations, added EU scaffold warnings.
+- **Empty-string fallback**: Fixed `??` → `||` in build-db.ts so empty `title_en`/`short_name` from seed data correctly falls back to English names mapping.
+
+### Changed
+- Database size increased from ~51 MB to ~70 MB due to trigram index overhead (expected tradeoff for correct CJK search).
+
 ## [2.0.0] - 2026-02-25
 ### Changed
 - **BREAKING:** Full corpus re-ingestion from NPC National Law Database (flk.npc.gov.cn)
