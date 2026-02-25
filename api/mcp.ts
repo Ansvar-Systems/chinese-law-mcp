@@ -17,10 +17,10 @@ import type { AboutContext } from '../src/tools/registry.js';
 // ---------------------------------------------------------------------------
 
 const SERVER_NAME = 'chinese-law-mcp';
-const SERVER_VERSION = '1.0.0';
+const SERVER_VERSION = '2.0.0';
 
 // ---------------------------------------------------------------------------
-// Database — downloaded from GitHub Releases on cold start (Strategy B)
+// Database — Strategy A (bundled) with fallback to GitHub Releases download
 // ---------------------------------------------------------------------------
 
 const TMP_DB = '/tmp/database.db';
