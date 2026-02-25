@@ -55,6 +55,9 @@ export interface LawIndexEntry {
 // Match 第X条 where X can be Chinese numerals or Arabic digits
 const ARTICLE_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)条[\s\u3000]*/;
 
+// Match numbered-item format: 一、 二、 三、 (used by some regulations/decisions)
+const NUMBERED_ITEM_PATTERN = /^[\s\u3000]*([一二三四五六七八九十百]+)、/;
+
 // Match chapter headings: 第X编, 第X章
 const PART_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)编[\s\u3000]*(.*)/;
 const CHAPTER_PATTERN = /^[\s\u3000]*第([一二三四五六七八九十百千零〇\d]+)章[\s\u3000]*(.*)/;
@@ -197,6 +200,75 @@ export function parseDocxHtml(html: string, lawId: string, meta: {
 
   // Save last article
   saveCurrentArticle();
+
+  // ─── Fallback: numbered-item format (一、二、三、) ───
+  // Some regulations use Chinese numbering instead of 第X条.
+  // Only try this if the 第X条 parser found nothing.
+  if (provisions.length === 0) {
+    let itemNum = '';
+    let itemContent: string[] = [];
+
+    // Skip title and adoption notice paragraphs (usually first 1-2)
+    const startIdx = Math.min(2, paragraphs.length);
+
+    for (let i = startIdx; i < paragraphs.length; i++) {
+      const para = paragraphs[i];
+      const itemMatch = para.match(NUMBERED_ITEM_PATTERN);
+
+      if (itemMatch) {
+        // Save previous item
+        if (itemNum && itemContent.length > 0) {
+          const arabicNum = chineseToArabic(itemNum);
+          provisions.push({
+            provision_ref: String(arabicNum),
+            chapter: '',
+            section: String(arabicNum),
+            title: '',
+            content: itemContent.join('\n').trim(),
+            language: 'zh',
+          });
+        }
+
+        // Start new item
+        itemNum = itemMatch[1];
+        const content = para.replace(NUMBERED_ITEM_PATTERN, '').trim();
+        itemContent = content ? [content] : [];
+      } else if (itemNum) {
+        itemContent.push(para);
+      }
+    }
+
+    // Save last item
+    if (itemNum && itemContent.length > 0) {
+      const arabicNum = chineseToArabic(itemNum);
+      provisions.push({
+        provision_ref: String(arabicNum),
+        chapter: '',
+        section: String(arabicNum),
+        title: '',
+        content: itemContent.join('\n').trim(),
+        language: 'zh',
+      });
+    }
+  }
+
+  // ─── Fallback: short resolution (single provision) ───
+  // Very short documents (resolutions, decisions) with no articles
+  // or numbered items — store the full text as a single provision.
+  if (provisions.length === 0 && paragraphs.length > 0) {
+    // Skip title paragraph, join the rest as a single provision
+    const bodyText = paragraphs.slice(1).join('\n').trim();
+    if (bodyText.length > 10) {
+      provisions.push({
+        provision_ref: '1',
+        chapter: '',
+        section: '1',
+        title: '',
+        content: bodyText,
+        language: 'zh',
+      });
+    }
+  }
 
   return {
     id: lawId,

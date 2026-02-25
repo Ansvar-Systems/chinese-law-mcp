@@ -11,7 +11,16 @@
   "category_code": 150,
   "category_name": "社会法 (Social)",
   "issuing_body": "全国人民代表大会常务委员会",
-  "provisions": [],
+  "provisions": [
+    {
+      "provision_ref": "1",
+      "chapter": "",
+      "section": "1",
+      "title": "",
+      "content": "（1981年3月6日通过）\n第五届全国人民代表大会常务委员会第十七次会议决定：批准《国务院关于职工探亲待遇的规定》，由国务院公布施行。",
+      "language": "zh"
+    }
+  ],
   "definitions": [],
   "eu_references": []
 }

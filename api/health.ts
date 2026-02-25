@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const SERVER_NAME = 'chinese-law-mcp';
-const SERVER_VERSION = '2.2.0';
+const SERVER_VERSION = '2.3.0';
 const REPO_URL = 'https://github.com/Ansvar-Systems/chinese-law-mcp';
 const FRESHNESS_MAX_DAYS = 30;
 
@@ -30,7 +30,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     uptime_seconds: Math.floor(process.uptime()),
     data_freshness: {
       max_age_days: FRESHNESS_MAX_DAYS,
-      note: 'Full corpus: 1,184 laws, 62,648 provisions from flk.npc.gov.cn (bundled database)',
+      note: 'Full corpus: 1,184 laws, 62,874 provisions from flk.npc.gov.cn (bundled database)',
     },
     capabilities: ['statutes'],
     tier: 'free',

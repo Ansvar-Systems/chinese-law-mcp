@@ -11,7 +11,40 @@
   "category_code": 110,
   "category_name": "宪法相关法 (Constitutional-related)",
   "issuing_body": "全国人民代表大会常务委员会",
-  "provisions": [],
+  "provisions": [
+    {
+      "provision_ref": "1",
+      "chapter": "",
+      "section": "1",
+      "title": "",
+      "content": "根据需要在沿海一定的港口城市设立海事法院。\n海事法院的设置或者变更、撤销，由最高人民法院决定。\n海事法院的审判机构和办事机构的设置，由最高人民法院规定。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "2",
+      "chapter": "",
+      "section": "2",
+      "title": "",
+      "content": "海事法院对所在地的市人民代表大会常务委员会负责。\n海事法院的审判工作受所在地的高级人民法院监督。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "3",
+      "chapter": "",
+      "section": "3",
+      "title": "",
+      "content": "海事法院管辖第一审海事案件和海商案件，不受理刑事案件和其他民事案件。\n各海事法院管辖区域的划分，由最高人民法院规定。\n对海事法院的判决和裁定的上诉案件由海事法院所在地的高级人民法院管辖。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "4",
+      "chapter": "",
+      "section": "4",
+      "title": "",
+      "content": "海事法院院长由所在地的市人民代表大会常务委员会主任提请本级人民代表大会常务委员会任免。\n海事法院副院长、庭长、副庭长、审判员和审判委员会委员，由海事法院院长提请所在地的市人民代表大会常务委员会任免。",
+      "language": "zh"
+    }
+  ],
   "definitions": [],
   "eu_references": []
 }

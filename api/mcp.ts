@@ -17,7 +17,7 @@ import type { AboutContext } from '../src/tools/registry.js';
 // ---------------------------------------------------------------------------
 
 const SERVER_NAME = 'chinese-law-mcp';
-const SERVER_VERSION = '2.2.0';
+const SERVER_VERSION = '2.3.0';
 
 // ---------------------------------------------------------------------------
 // Database — Strategy A (bundled) with fallback to GitHub Releases download

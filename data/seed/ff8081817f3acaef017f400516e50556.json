@@ -11,7 +11,88 @@
   "category_code": 130,
   "category_name": "行政法 (Administrative)",
   "issuing_body": "全国人民代表大会常务委员会",
-  "provisions": [],
+  "provisions": [
+    {
+      "provision_ref": "1",
+      "chapter": "",
+      "section": "1",
+      "title": "",
+      "content": "士兵军衔是表明士兵身份、区分士兵等级的称号和标志，是党和国家给予士兵的地位和荣誉。\n士兵军衔分为军士军衔、义务兵军衔。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "2",
+      "chapter": "",
+      "section": "2",
+      "title": "",
+      "content": "军士军衔设三等七衔：\n（一）高级军士：一级军士长、二级军士长、三级军士长；\n（二）中级军士：一级上士、二级上士；\n（三）初级军士：中士、下士。\n军士军衔中，一级军士长为最高军衔，下士为最低军衔。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "3",
+      "chapter": "",
+      "section": "3",
+      "title": "",
+      "content": "义务兵军衔由高至低分为上等兵、列兵。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "4",
+      "chapter": "",
+      "section": "4",
+      "title": "",
+      "content": "士兵军衔按照军种划分种类，在军衔前冠以军种名称。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "5",
+      "chapter": "",
+      "section": "5",
+      "title": "",
+      "content": "军衔高的士兵与军衔低的士兵，军衔高的为上级。军衔高的士兵在职务上隶属于军衔低的士兵的，职务高的为上级。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "6",
+      "chapter": "",
+      "section": "6",
+      "title": "",
+      "content": "士兵军衔的授予、晋升，以本人任职岗位、德才表现和服役贡献为依据。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "7",
+      "chapter": "",
+      "section": "7",
+      "title": "",
+      "content": "士兵军衔的标志式样和佩带办法，由中央军事委员会规定。\n士兵必须按照规定佩带与其军衔相符的军衔标志。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "8",
+      "chapter": "",
+      "section": "8",
+      "title": "",
+      "content": "士兵服现役的衔级年限和军衔授予、晋升、降级、剥夺以及培训、考核、任用等管理制度，由中央军事委员会规定。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "9",
+      "chapter": "",
+      "section": "9",
+      "title": "",
+      "content": "中国人民武装警察部队现役警士、义务兵的衔级制度，适用本决定。",
+      "language": "zh"
+    },
+    {
+      "provision_ref": "10",
+      "chapter": "",
+      "section": "10",
+      "title": "",
+      "content": "本决定自2022年3月31日起施行。",
+      "language": "zh"
+    }
+  ],
   "definitions": [],
   "eu_references": []
 }
