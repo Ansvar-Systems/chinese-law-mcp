@@ -38,21 +38,22 @@ export const TOOLS: Tool[] = [
   {
     name: 'search_legislation',
     description:
-      'Search Chinese laws and regulations by keyword. Supports both Chinese (e.g., "个人信息") and English queries. ' +
-      'Returns provision-level results with BM25 relevance ranking. ' +
+      'Search Chinese laws and regulations by keyword. Best results with Chinese queries (e.g., "个人信息", "数据出境"). ' +
+      'Returns provision-level results with relevance ranking. ' +
       'Results include: document ID, title, provision reference, snippet with >>>highlight<<< markers, and relevance score. ' +
-      'Use document_id to filter within a single statute. Use status to filter by in_force/amended/repealed. ' +
-      'Use language to filter by "zh" (Chinese) or "en" (English). Default limit is 10 (max 50).',
+      'Use document_id to filter within a single statute (pass Chinese name like "网络安全法" or English abbreviation like "PIPL"). ' +
+      'Use status to filter by in_force/amended/repealed. ' +
+      'Content is primarily in Chinese. Default limit is 10 (max 50).',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Search query in Chinese or English. Supports natural language or FTS5 syntax (AND, OR, NOT, "phrase", prefix*). Example: "个人信息" OR "personal information"',
+          description: 'Search query — Chinese terms recommended (e.g., "个人信息", "数据安全"). English terms work for major laws with English metadata (e.g., "PIPL", "cybersecurity").',
         },
         document_id: {
           type: 'string',
-          description: 'Filter to a specific law by ID (e.g., "csl-2016"), Chinese name (e.g., "网络安全法"), or English name',
+          description: 'Filter to a specific law by Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
         },
         status: {
           type: 'string',
@@ -61,8 +62,7 @@ export const TOOLS: Tool[] = [
         },
         language: {
           type: 'string',
-          enum: ['zh', 'en'],
-          description: 'Filter by language: "zh" for Chinese, "en" for English translations.',
+          description: 'Filter by language code. Content is predominantly "zh" (Chinese).',
         },
         limit: {
           type: 'number',
@@ -79,18 +79,18 @@ export const TOOLS: Tool[] = [
     name: 'get_provision',
     description:
       'Retrieve the full text of a specific article/provision from a Chinese law. ' +
-      'Chinese provisions use article notation: Article 1, 第一条. ' +
-      'Pass document_id as the internal ID (e.g., "csl-2016"), Chinese name (e.g., "网络安全法"), ' +
-      'or English name (e.g., "Cybersecurity Law"). ' +
+      'Chinese provisions use article notation: 第一条 (Article 1). ' +
+      'Pass document_id as a Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), ' +
+      'or internal UUID. Fuzzy matching supported. ' +
       'Pass article as the Arabic number (e.g., "3") or provision_ref for exact match. ' +
-      'Returns: document ID, title (Chinese + English), status, provision reference, and full content text. ' +
+      'Returns: document ID, title, status, provision reference, and full content text (Chinese). ' +
       'WARNING: Omitting article/provision_ref returns ALL provisions (capped at 200).',
     inputSchema: {
       type: 'object',
       properties: {
         document_id: {
           type: 'string',
-          description: 'Law identifier: internal ID (e.g., "csl-2016"), Chinese name (e.g., "网络安全法"), or English name. Fuzzy matching supported.',
+          description: 'Law identifier: Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID. Fuzzy matching supported.',
         },
         article: {
           type: 'string',
@@ -102,8 +102,7 @@ export const TOOLS: Tool[] = [
         },
         language: {
           type: 'string',
-          enum: ['zh', 'en'],
-          description: 'Filter by language: "zh" for Chinese, "en" for English translation.',
+          description: 'Filter by language code. Content is predominantly "zh" (Chinese).',
         },
       },
       required: ['document_id'],
@@ -143,15 +142,15 @@ export const TOOLS: Tool[] = [
     name: 'build_legal_stance',
     description:
       'Build a comprehensive set of citations for a legal question by searching across all Chinese laws simultaneously. ' +
-      'Returns aggregated results from legislation search, cross-referenced with EU/international law where applicable. ' +
-      'Best for broad legal research questions like "What Chinese laws govern personal data processing?" ' +
-      'Supports queries in both Chinese and English.',
+      'Best for broad legal research questions like "哪些中国法律规范个人数据处理?" or "数据出境安全". ' +
+      'Returns aggregated provision-level results with relevance ranking. ' +
+      'Use Chinese queries for best results. English abbreviations (PIPL, CSL) work for document filtering.',
     inputSchema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Legal question or topic to research in Chinese or English (e.g., "个人信息处理", "personal data processing obligations")',
+          description: 'Legal question or topic to research — Chinese recommended (e.g., "个人信息处理", "数据出境安全评估")',
         },
         document_id: {
           type: 'string',
@@ -159,8 +158,7 @@ export const TOOLS: Tool[] = [
         },
         language: {
           type: 'string',
-          enum: ['zh', 'en'],
-          description: 'Filter results by language',
+          description: 'Filter results by language code. Content is predominantly "zh" (Chinese).',
         },
         limit: {
           type: 'number',
@@ -208,7 +206,7 @@ export const TOOLS: Tool[] = [
       properties: {
         document_id: {
           type: 'string',
-          description: 'Law identifier: ID (e.g., "csl-2016"), Chinese name (e.g., "网络安全法"), or English name',
+          description: 'Law identifier: Chinese name (e.g., "网络安全法"), English abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
         },
         provision_ref: {
           type: 'string',
@@ -221,15 +219,15 @@ export const TOOLS: Tool[] = [
   {
     name: 'get_eu_basis',
     description:
-      'Get EU/international legal basis for a Chinese law. Returns all EU instruments that the Chinese law ' +
+      'Get EU/international legal basis for a Chinese law. Returns EU instruments that the Chinese law ' +
       'relates to or parallels, including CELEX numbers and relationship type. ' +
-      'Example: PIPL -> GDPR (Regulation 2016/679), CSL -> NIS2 (Directive 2022/2555).',
+      'Note: EU cross-reference data is a scaffold — results may be empty for most laws.',
     inputSchema: {
       type: 'object',
       properties: {
         document_id: {
           type: 'string',
-          description: 'Chinese law identifier (e.g., "pipl-2021", "网络安全法")',
+          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL", "网络安全法")',
         },
         include_articles: {
           type: 'boolean',
@@ -253,7 +251,7 @@ export const TOOLS: Tool[] = [
     description:
       'Find Chinese laws that implement or relate to a specific EU directive or regulation. ' +
       'Input the EU document ID in "type:year/number" format (e.g., "regulation:2016/679" for GDPR). ' +
-      'Returns matching Chinese laws with relationship status.',
+      'Note: EU cross-reference data is a scaffold — results may be empty.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -279,7 +277,8 @@ export const TOOLS: Tool[] = [
     name: 'search_eu_implementations',
     description:
       'Search for EU directives and regulations that have Chinese law equivalents or implementations. ' +
-      'Search by keyword (e.g., "data protection", "cybersecurity"), filter by type, or year range.',
+      'Search by keyword (e.g., "data protection", "cybersecurity"), filter by type, or year range. ' +
+      'Note: EU cross-reference data is a scaffold — results may be limited.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -312,14 +311,14 @@ export const TOOLS: Tool[] = [
     name: 'get_provision_eu_basis',
     description:
       'Get EU/international legal basis for a specific provision within a Chinese law. ' +
-      'Example: PIPL Art. 4 -> references GDPR Article 4 (definitions). ' +
-      'Use this for pinpoint EU/international compliance checks at the article level.',
+      'Use this for pinpoint EU/international compliance checks at the article level. ' +
+      'Note: EU cross-reference data is a scaffold — results may be empty for most provisions.',
     inputSchema: {
       type: 'object',
       properties: {
         document_id: {
           type: 'string',
-          description: 'Chinese law identifier (e.g., "pipl-2021", "网络安全法")',
+          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL", "网络安全法")',
         },
         provision_ref: {
           type: 'string',
@@ -333,13 +332,14 @@ export const TOOLS: Tool[] = [
     name: 'validate_eu_compliance',
     description:
       'Check EU/international compliance status for a Chinese law or provision. ' +
-      'Returns compliance status: compliant, partial, unclear, or not_applicable.',
+      'Returns compliance status: compliant, partial, unclear, or not_applicable. ' +
+      'Note: EU cross-reference data is a scaffold — may return not_applicable for most laws.',
     inputSchema: {
       type: 'object',
       properties: {
         document_id: {
           type: 'string',
-          description: 'Chinese law identifier (e.g., "pipl-2021")',
+          description: 'Chinese law identifier (e.g., "个人信息保护法", "PIPL")',
         },
         provision_ref: {
           type: 'string',

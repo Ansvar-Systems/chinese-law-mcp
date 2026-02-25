@@ -1,5 +1,6 @@
 /**
  * build_legal_stance — Aggregate citations for a legal question.
+ * Uses FTS5 trigram for CJK substring matching with LIKE fallback.
  */
 
 import type { Database } from '@ansvar/mcp-sqlite';
@@ -47,6 +48,11 @@ export async function buildLegalStance(
   const limit = Math.min(Math.max(input.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const queryVariants = buildFtsQueryVariants(input.query);
 
+  // For short queries, use LIKE-based search
+  if (queryVariants.use_like) {
+    return buildStanceWithLike(db, input, limit);
+  }
+
   let provSql = `
     SELECT
       lp.document_id,
@@ -86,6 +92,53 @@ export async function buildLegalStance(
   if (provisions.length === 0 && queryVariants.fallback) {
     provisions = runProvisionQuery(queryVariants.fallback);
   }
+
+  return {
+    results: {
+      query: input.query,
+      provisions,
+      total_citations: provisions.length,
+    },
+    _metadata: generateResponseMetadata(db)
+  };
+}
+
+/** LIKE-based fallback for queries too short for trigram FTS5 */
+function buildStanceWithLike(
+  db: Database,
+  input: BuildLegalStanceInput,
+  limit: number,
+): ToolResponse<LegalStanceResult> {
+  let sql = `
+    SELECT
+      lp.document_id,
+      ld.title as document_title,
+      lp.provision_ref,
+      lp.title,
+      substr(lp.content, 1, 200) as snippet,
+      0 as relevance,
+      lp.language
+    FROM legal_provisions lp
+    JOIN legal_documents ld ON ld.id = lp.document_id
+    WHERE lp.content LIKE ?
+  `;
+
+  const params: (string | number)[] = [`%${input.query.trim()}%`];
+
+  if (input.document_id) {
+    sql += ` AND lp.document_id = ?`;
+    params.push(input.document_id);
+  }
+
+  if (input.language) {
+    sql += ` AND lp.language = ?`;
+    params.push(input.language);
+  }
+
+  sql += ` LIMIT ?`;
+  params.push(limit);
+
+  const provisions = db.prepare(sql).all(...params) as ProvisionHit[];
 
   return {
     results: {

@@ -1,19 +1,26 @@
 /**
  * FTS5 query builder for Chinese Law MCP.
  *
- * Sanitises user input to prevent FTS5 syntax errors from unescaped
- * special characters while supporting both Chinese and English queries.
- * Chinese text uses unicode61 tokenizer which handles CJK characters.
+ * Uses trigram tokenizer for CJK substring matching.
+ * Trigram requires minimum 3-character queries. For shorter queries,
+ * callers should fall back to LIKE-based search.
+ *
+ * Chinese text has no word boundaries (no spaces), so trigram is the
+ * only reliable tokenizer for substring matching across compound terms
+ * like 数据出境 (cross-border data transfer).
  */
-
-const EXPLICIT_FTS_SYNTAX = /["""]|(\bAND\b)|(\bOR\b)|(\bNOT\b)|\*$/;
 
 /** Maximum query length to prevent abuse */
 const MAX_QUERY_LENGTH = 1000;
 
+/** Minimum characters for trigram FTS5 to work */
+export const MIN_FTS_LENGTH = 3;
+
 export interface FtsQueryVariants {
   primary: string;
   fallback?: string;
+  /** True if query is too short for FTS5 trigram — caller should use LIKE */
+  use_like: boolean;
 }
 
 /**
@@ -24,44 +31,47 @@ function sanitiseToken(token: string): string {
   return token.replace(/[^\p{L}\p{N}_-]/gu, '');
 }
 
+/** Check if a string contains CJK characters */
+function hasCJK(text: string): boolean {
+  return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text);
+}
+
 export function buildFtsQueryVariants(query: string): FtsQueryVariants {
   const trimmed = query.trim().slice(0, MAX_QUERY_LENGTH);
 
   if (trimmed.length === 0) {
-    return { primary: '""' };
+    return { primary: '""', use_like: false };
   }
 
-  // If user is using explicit FTS5 syntax, sanitise dangerous chars
-  // but preserve the intent of AND/OR/NOT and quotes
-  if (EXPLICIT_FTS_SYNTAX.test(trimmed)) {
-    let normalised = trimmed
-      .replace(/[\u201C\u201D]/g, '"')  // smart quotes -> standard
-      .replace(/;/g, '')                 // strip semicolons
-      .replace(/--/g, '')                // strip comment sequences
-      .slice(0, MAX_QUERY_LENGTH);
+  // For trigram tokenizer, queries shorter than 3 chars won't match
+  if (trimmed.length < MIN_FTS_LENGTH) {
+    return { primary: trimmed, use_like: true };
+  }
 
-    // Balance unmatched double quotes
-    const quoteCount = (normalised.match(/"/g) ?? []).length;
-    if (quoteCount % 2 !== 0) {
-      normalised += '"';
+  // For CJK text: use direct substring matching (trigram handles this natively)
+  if (hasCJK(trimmed)) {
+    // Sanitise but preserve CJK characters
+    const sanitised = sanitiseToken(trimmed);
+    if (sanitised.length < MIN_FTS_LENGTH) {
+      return { primary: sanitised, use_like: true };
     }
-
-    return { primary: normalised };
+    // With trigram, just pass the string directly — it matches substrings
+    return { primary: sanitised, use_like: false };
   }
 
+  // For non-CJK (English) text: tokenize and build OR query
   const tokens = trimmed
     .split(/\s+/)
     .filter(t => t.length > 0)
     .map(sanitiseToken)
-    .filter(t => t.length > 0);
+    .filter(t => t.length >= MIN_FTS_LENGTH);
 
   if (tokens.length === 0) {
-    return { primary: '""' };
+    // All tokens too short for trigram
+    return { primary: trimmed, use_like: true };
   }
 
-  // For Chinese text, wrap each token in quotes for exact matching
-  const primary = tokens.map(t => `"${t}"*`).join(' ');
-  const fallback = tokens.map(t => `${t}*`).join(' OR ');
-
-  return { primary, fallback };
+  // Join with OR for broader matching
+  const primary = tokens.join(' OR ');
+  return { primary, use_like: false };
 }
