@@ -112,12 +112,12 @@ CREATE INDEX idx_provisions_doc ON legal_provisions(document_id);
 CREATE INDEX idx_provisions_chapter ON legal_provisions(document_id, chapter);
 CREATE INDEX idx_provisions_lang ON legal_provisions(language);
 
--- FTS5 for provision search (supports Chinese via unicode61 tokenizer)
+-- FTS5 for provision search (trigram tokenizer for CJK substring matching)
 CREATE VIRTUAL TABLE provisions_fts USING fts5(
   content, title,
   content='legal_provisions',
   content_rowid='id',
-  tokenize='unicode61'
+  tokenize='trigram'
 );
 
 CREATE TRIGGER provisions_ai AFTER INSERT ON legal_provisions BEGIN
@@ -162,12 +162,12 @@ CREATE TABLE definitions (
   UNIQUE(document_id, term)
 );
 
--- FTS5 for definition search
+-- FTS5 for definition search (trigram tokenizer for CJK substring matching)
 CREATE VIRTUAL TABLE definitions_fts USING fts5(
   term, definition,
   content='definitions',
   content_rowid='id',
-  tokenize='unicode61'
+  tokenize='trigram'
 );
 
 CREATE TRIGGER definitions_ai AFTER INSERT ON definitions BEGIN
@@ -245,6 +245,61 @@ CREATE TABLE db_metadata (
   value TEXT NOT NULL
 );
 `;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// English names and abbreviations for key laws
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Map from Chinese title substring → { title_en, short_name } */
+const ENGLISH_NAMES: Record<string, { title_en: string; short_name: string }> = {
+  '个人信息保护法': { title_en: 'Personal Information Protection Law', short_name: 'PIPL' },
+  '网络安全法': { title_en: 'Cybersecurity Law', short_name: 'CSL' },
+  '数据安全法': { title_en: 'Data Security Law', short_name: 'DSL' },
+  '民法典': { title_en: 'Civil Code', short_name: 'Civil Code' },
+  '公司法': { title_en: 'Company Law', short_name: 'Company Law' },
+  '电子商务法': { title_en: 'E-Commerce Law', short_name: 'E-Commerce Law' },
+  '反垄断法': { title_en: 'Anti-Monopoly Law', short_name: 'AML' },
+  '反不正当竞争法': { title_en: 'Anti-Unfair Competition Law', short_name: 'AUCL' },
+  '消费者权益保护法': { title_en: 'Consumer Rights Protection Law', short_name: 'Consumer Protection Law' },
+  '劳动法': { title_en: 'Labour Law', short_name: 'Labour Law' },
+  '劳动合同法': { title_en: 'Labour Contract Law', short_name: 'Labour Contract Law' },
+  '刑法': { title_en: 'Criminal Law', short_name: 'Criminal Law' },
+  '刑事诉讼法': { title_en: 'Criminal Procedure Law', short_name: 'Criminal Procedure Law' },
+  '民事诉讼法': { title_en: 'Civil Procedure Law', short_name: 'Civil Procedure Law' },
+  '行政诉讼法': { title_en: 'Administrative Litigation Law', short_name: 'Administrative Litigation Law' },
+  '行政处罚法': { title_en: 'Administrative Penalty Law', short_name: 'Administrative Penalty Law' },
+  '证券法': { title_en: 'Securities Law', short_name: 'Securities Law' },
+  '银行业监督管理法': { title_en: 'Banking Supervision Law', short_name: 'Banking Supervision Law' },
+  '保险法': { title_en: 'Insurance Law', short_name: 'Insurance Law' },
+  '税收征收管理法': { title_en: 'Tax Collection and Administration Law', short_name: 'Tax Administration Law' },
+  '环境保护法': { title_en: 'Environmental Protection Law', short_name: 'Environmental Protection Law' },
+  '著作权法': { title_en: 'Copyright Law', short_name: 'Copyright Law' },
+  '专利法': { title_en: 'Patent Law', short_name: 'Patent Law' },
+  '商标法': { title_en: 'Trademark Law', short_name: 'Trademark Law' },
+  '反间谍法': { title_en: 'Counter-Espionage Law', short_name: 'Counter-Espionage Law' },
+  '国家安全法': { title_en: 'National Security Law', short_name: 'National Security Law' },
+  '密码法': { title_en: 'Cryptography Law', short_name: 'Cryptography Law' },
+  '电子签名法': { title_en: 'Electronic Signature Law', short_name: 'E-Signature Law' },
+  '反恐怖主义法': { title_en: 'Anti-Terrorism Law', short_name: 'Anti-Terrorism Law' },
+  '宪法': { title_en: 'Constitution of the People\'s Republic of China', short_name: 'Constitution' },
+  '立法法': { title_en: 'Legislation Law', short_name: 'Legislation Law' },
+  '合同法': { title_en: 'Contract Law', short_name: 'Contract Law' },
+  '物权法': { title_en: 'Property Law', short_name: 'Property Law' },
+  '侵权责任法': { title_en: 'Tort Liability Law', short_name: 'Tort Law' },
+  '外商投资法': { title_en: 'Foreign Investment Law', short_name: 'FIL' },
+  '反洗钱法': { title_en: 'Anti-Money Laundering Law', short_name: 'Anti-Money Laundering Law' },
+  '招标投标法': { title_en: 'Bidding Law', short_name: 'Bidding Law' },
+  '政府采购法': { title_en: 'Government Procurement Law', short_name: 'Government Procurement Law' },
+};
+
+function resolveEnglishName(chineseTitle: string): { title_en: string; short_name: string } | null {
+  for (const [key, value] of Object.entries(ENGLISH_NAMES)) {
+    if (chineseTitle.includes(key)) {
+      return value;
+    }
+  }
+  return null;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -375,12 +430,13 @@ function buildDatabase(): void {
       const content = fs.readFileSync(filePath, 'utf-8');
       const seed = JSON.parse(content) as DocumentSeed;
 
+      const englishName = resolveEnglishName(seed.title);
       insertDoc.run(
         seed.id,
         seed.type ?? 'statute',
         seed.title,
-        seed.title_en ?? null,
-        seed.short_name ?? null,
+        seed.title_en || englishName?.title_en || null,
+        seed.short_name || englishName?.short_name || null,
         seed.status ?? 'in_force',
         seed.issued_date ?? null,
         seed.in_force_date ?? null,

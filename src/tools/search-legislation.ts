@@ -1,6 +1,7 @@
 /**
  * search_legislation — Full-text search across Chinese law provisions.
- * Supports both Chinese and English queries.
+ * Uses FTS5 trigram tokenizer for CJK substring matching.
+ * Falls back to LIKE for queries shorter than 3 characters.
  */
 
 import type { Database } from '@ansvar/mcp-sqlite';
@@ -46,6 +47,11 @@ export async function searchLegislation(
   const limit = Math.min(Math.max(input.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
   const queryVariants = buildFtsQueryVariants(input.query);
   if (input.as_of_date) normalizeAsOfDate(input.as_of_date);
+
+  // For short queries, fall back to LIKE-based search
+  if (queryVariants.use_like) {
+    return searchWithLike(db, input, limit);
+  }
 
   let sql = `
     SELECT
@@ -93,6 +99,56 @@ export async function searchLegislation(
   const results = (primaryResults.length > 0 || !queryVariants.fallback)
     ? primaryResults
     : runQuery(queryVariants.fallback);
+
+  return {
+    results,
+    _metadata: generateResponseMetadata(db)
+  };
+}
+
+/** LIKE-based fallback for queries too short for trigram FTS5 */
+function searchWithLike(
+  db: Database,
+  input: SearchLegislationInput,
+  limit: number,
+): ToolResponse<SearchLegislationResult[]> {
+  let sql = `
+    SELECT
+      lp.document_id,
+      ld.title as document_title,
+      lp.provision_ref,
+      lp.chapter,
+      lp.section,
+      lp.title,
+      substr(lp.content, 1, 200) as snippet,
+      0 as relevance,
+      lp.language
+    FROM legal_provisions lp
+    JOIN legal_documents ld ON ld.id = lp.document_id
+    WHERE lp.content LIKE ?
+  `;
+
+  const params: (string | number)[] = [`%${input.query.trim()}%`];
+
+  if (input.document_id) {
+    sql += ` AND lp.document_id = ?`;
+    params.push(input.document_id);
+  }
+
+  if (input.status) {
+    sql += ` AND ld.status = ?`;
+    params.push(input.status);
+  }
+
+  if (input.language) {
+    sql += ` AND lp.language = ?`;
+    params.push(input.language);
+  }
+
+  sql += ` LIMIT ?`;
+  params.push(limit);
+
+  const results = db.prepare(sql).all(...params) as SearchLegislationResult[];
 
   return {
     results,
