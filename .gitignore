@@ -10,3 +10,5 @@ coverage/
 .vercel/
 .DS_Store
 .vercel
+.claude/
+.serena/
