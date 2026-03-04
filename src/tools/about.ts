@@ -44,7 +44,7 @@ export function getAbout(db: InstanceType<typeof Database>, context: AboutContex
       {
         name: 'National Laws and Regulations Database',
         url: 'https://flk.npc.gov.cn',
-        authority: 'National People's Congress',
+        authority: 'National People\'s Congress',
       },
     ],
     freshness: {
