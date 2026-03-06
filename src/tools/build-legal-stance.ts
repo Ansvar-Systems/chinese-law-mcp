@@ -4,7 +4,8 @@
  */
 
 import type { Database } from '@ansvar/mcp-sqlite';
-import { buildFtsQueryVariants } from '../utils/fts-query.js';
+import { buildFtsQueryVariantsLegacy as buildFtsQueryVariants } from '../utils/fts-query.js';
+import { resolveDocumentId } from '../utils/statute-id.js';
 import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.js';
 
 export interface BuildLegalStanceInput {
@@ -44,11 +45,29 @@ export async function buildLegalStance(
   }
 
   const limit = Math.min(Math.max(input.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
+  // Fetch extra rows to account for deduplication
+  const fetchLimit = limit * 2;
   const queryVariants = buildFtsQueryVariants(input.query);
+
+  // Resolve document_id from title if provided
+  let resolvedDocId: string | undefined;
+  if (input.document_id) {
+    const resolved = resolveDocumentId(db as any, input.document_id);
+    resolvedDocId = resolved ?? undefined;
+    if (!resolved) {
+      return {
+        results: { query: input.query, provisions: [], total_citations: 0 },
+        _metadata: {
+          ...generateResponseMetadata(db),
+          note: `No document found matching "${input.document_id}"`,
+        },
+      };
+    }
+  }
 
   // For short queries, use LIKE-based search
   if (queryVariants.use_like) {
-    return buildStanceWithLike(db, input, limit);
+    return buildStanceWithLike(db, input, fetchLimit, limit, resolvedDocId);
   }
 
   let provSql = `
@@ -67,23 +86,26 @@ export async function buildLegalStance(
 
   const provParams: (string | number)[] = [];
 
-  if (input.document_id) {
+  if (resolvedDocId) {
     provSql += ` AND lp.document_id = ?`;
-    provParams.push(input.document_id);
+    provParams.push(resolvedDocId);
   }
 
   provSql += ` ORDER BY relevance LIMIT ?`;
-  provParams.push(limit);
+  provParams.push(fetchLimit);
 
   const runProvisionQuery = (ftsQuery: string): ProvisionHit[] => {
     const bound = [ftsQuery, ...provParams];
     return db.prepare(provSql).all(...bound) as ProvisionHit[];
   };
 
-  let provisions = runProvisionQuery(queryVariants.primary);
-  if (provisions.length === 0 && queryVariants.fallback) {
-    provisions = runProvisionQuery(queryVariants.fallback);
-  }
+  const primaryResults = runProvisionQuery(queryVariants.primary);
+  const usedFallback = primaryResults.length === 0 && !!queryVariants.fallback;
+  const rawProvisions = usedFallback
+    ? runProvisionQuery(queryVariants.fallback!)
+    : primaryResults;
+
+  const provisions = deduplicateResults(rawProvisions, limit);
 
   return {
     results: {
@@ -91,7 +113,10 @@ export async function buildLegalStance(
       provisions,
       total_citations: provisions.length,
     },
-    _metadata: generateResponseMetadata(db)
+    _metadata: {
+      ...generateResponseMetadata(db),
+      ...(usedFallback ? { query_strategy: 'broadened' } : {}),
+    },
   };
 }
 
@@ -99,7 +124,9 @@ export async function buildLegalStance(
 function buildStanceWithLike(
   db: Database,
   input: BuildLegalStanceInput,
+  fetchLimit: number,
   limit: number,
+  resolvedDocId?: string,
 ): ToolResponse<LegalStanceResult> {
   let sql = `
     SELECT
@@ -116,15 +143,16 @@ function buildStanceWithLike(
 
   const params: (string | number)[] = [`%${input.query.trim()}%`];
 
-  if (input.document_id) {
+  if (resolvedDocId) {
     sql += ` AND lp.document_id = ?`;
-    params.push(input.document_id);
+    params.push(resolvedDocId);
   }
 
   sql += ` LIMIT ?`;
-  params.push(limit);
+  params.push(fetchLimit);
 
-  const provisions = db.prepare(sql).all(...params) as ProvisionHit[];
+  const rows = db.prepare(sql).all(...params) as ProvisionHit[];
+  const provisions = deduplicateResults(rows, limit);
 
   return {
     results: {
@@ -132,6 +160,30 @@ function buildStanceWithLike(
       provisions,
       total_citations: provisions.length,
     },
-    _metadata: generateResponseMetadata(db)
+    _metadata: {
+      ...generateResponseMetadata(db),
+      query_strategy: 'like_fallback',
+    },
   };
+}
+
+/**
+ * Deduplicate results by document_title + provision_ref.
+ * Duplicate document IDs (numeric vs slug) cause the same provision to appear twice.
+ * Keeps the first (highest-ranked) occurrence.
+ */
+function deduplicateResults(
+  rows: ProvisionHit[],
+  limit: number,
+): ProvisionHit[] {
+  const seen = new Set<string>();
+  const deduped: ProvisionHit[] = [];
+  for (const row of rows) {
+    const key = `${row.document_title}::${row.provision_ref}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(row);
+    if (deduped.length >= limit) break;
+  }
+  return deduped;
 }

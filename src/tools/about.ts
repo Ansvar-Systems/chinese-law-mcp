@@ -1,37 +1,13 @@
+/**
+ * about — Server metadata, dataset statistics, and provenance.
+ */
+
 import type Database from '@ansvar/mcp-sqlite';
 
 export interface AboutContext {
   version: string;
   fingerprint: string;
   dbBuilt: string;
-}
-
-export interface AboutResult {
-  server: {
-    name: string;
-    package: string;
-    version: string;
-    suite: string;
-    repository: string;
-  };
-  dataset: {
-    fingerprint: string;
-    built: string;
-    jurisdiction: string;
-    content_basis: string;
-    counts: Record<string, number>;
-  };
-  provenance: {
-    sources: string[];
-    license: string;
-    authenticity_note: string;
-  };
-  security: {
-    access_model: string;
-    network_access: boolean;
-    filesystem_access: boolean;
-    arbitrary_code: boolean;
-  };
 }
 
 function safeCount(db: InstanceType<typeof Database>, sql: string): number {
@@ -43,47 +19,43 @@ function safeCount(db: InstanceType<typeof Database>, sql: string): number {
   }
 }
 
-export function getAbout(
-  db: InstanceType<typeof Database>,
-  context: AboutContext
-): AboutResult {
+export function getAbout(db: InstanceType<typeof Database>, context: AboutContext) {
+
+  const euRefs = safeCount(db, 'SELECT COUNT(*) as count FROM eu_references');
+
+  const stats: Record<string, number> = {
+    documents: safeCount(db, 'SELECT COUNT(*) as count FROM legal_documents'),
+    provisions: safeCount(db, 'SELECT COUNT(*) as count FROM legal_provisions'),
+    definitions: safeCount(db, 'SELECT COUNT(*) as count FROM definitions'),
+  };
+
+  if (euRefs > 0) {
+    stats.eu_documents = safeCount(db, 'SELECT COUNT(*) as count FROM eu_documents');
+    stats.eu_references = euRefs;
+  }
+
   return {
-    server: {
-      name: 'Chinese Law MCP',
-      package: '@ansvar/chinese-law-mcp',
-      version: context.version,
-      suite: 'Ansvar Compliance Suite',
-      repository: 'https://github.com/Ansvar-Systems/chinese-law-mcp',
-    },
-    dataset: {
-      fingerprint: context.fingerprint,
-      built: context.dbBuilt,
-      jurisdiction: 'People\'s Republic of China (CN)',
-      content_basis:
-        'Chinese law text from flk.npc.gov.cn (NPC National Law Database) and gov.cn (State Council). ' +
-        'Covers national laws and administrative regulations in cybersecurity, data protection, commercial, and competition law.',
-      counts: {
-        legal_documents: safeCount(db, 'SELECT COUNT(*) as count FROM legal_documents'),
-        legal_provisions: safeCount(db, 'SELECT COUNT(*) as count FROM legal_provisions'),
+    name: 'Chinese Law MCP',
+    version: context.version,
+    jurisdiction: 'CN',
+    description: 'Chinese Law MCP — legislation via Model Context Protocol',
+    stats,
+    data_sources: [
+      {
+        name: 'National Laws and Regulations Database',
+        url: 'https://flk.npc.gov.cn',
+        authority: 'National People\'s Congress',
       },
+    ],
+    freshness: {
+      database_built: context.dbBuilt,
     },
-    provenance: {
-      sources: [
-        'flk.npc.gov.cn (NPC National Law Database — national laws)',
-        'gov.cn (State Council — administrative regulations)',
-      ],
-      license:
-        'Apache-2.0 (server code). Law text is public domain under Chinese law.',
-      authenticity_note:
-        'Law text is derived from official NPC and State Council publications. ' +
-        'The Chinese text is the sole legally binding version. Content may lag behind PRC Official Gazette. ' +
-        'Verify against official publications when legal certainty is required.',
-    },
-    security: {
-      access_model: 'read-only',
-      network_access: false,
-      filesystem_access: false,
-      arbitrary_code: false,
+    disclaimer:
+      'This is a research tool, not legal advice. Verify critical citations against official sources.',
+    network: {
+      name: 'Ansvar MCP Network',
+      open_law: 'https://ansvar.eu/open-law',
+      directory: 'https://ansvar.ai/mcp',
     },
   };
 }
