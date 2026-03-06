@@ -60,8 +60,10 @@ export function sanitizeFtsInput(input: string): string {
   }
 
   // Standard mode: aggressive strip
+  // Preserve trailing * on words (FTS5 prefix search) but strip other special chars
   const cleaned = input
-    .replace(/['"(){}[\]^~*:@#$%&+=<>|\\/.!?,;]/g, ' ')
+    .replace(/['"(){}[\]^~:@#$%&+=<>|\\/.!?,;]/g, ' ')
+    .replace(/\*(?!\s|$)/g, ' ')    // strip * unless at end of word
     .replace(/\s+/g, ' ')
     .trim();
 
