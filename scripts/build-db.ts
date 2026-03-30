@@ -25,7 +25,8 @@ const DB_PATH = path.resolve(__dirname, '../data/database.db');
 
 interface DocumentSeed {
   id: string;
-  type: 'statute' | 'administrative_regulation' | 'departmental_rule';
+  type: 'statute' | 'administrative_regulation' | 'departmental_rule' | 'local_regulation' | 'judicial_interpretation' | 'regulatory_decision';
+  category?: string;
   title: string;
   title_en?: string;
   short_name?: string;
@@ -34,6 +35,9 @@ interface DocumentSeed {
   in_force_date?: string;
   url?: string;
   description?: string;
+  issuing_body?: string;
+  province?: string;
+  province_code?: string;
   provisions?: ProvisionSeed[];
   definitions?: DefinitionSeed[];
 }
@@ -65,10 +69,11 @@ interface ProvisionDedupStats {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SCHEMA = `
--- Legal documents (laws, administrative regulations)
+-- Legal documents (laws, administrative regulations, local regulations, judicial interpretations)
 CREATE TABLE legal_documents (
   id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK(type IN ('statute', 'administrative_regulation', 'judicial_interpretation', 'departmental_rule')),
+  type TEXT NOT NULL CHECK(type IN ('statute', 'administrative_regulation', 'judicial_interpretation', 'departmental_rule', 'local_regulation', 'regulatory_decision')),
+  category TEXT,
   title TEXT NOT NULL,
   title_en TEXT,
   short_name TEXT,
@@ -78,8 +83,15 @@ CREATE TABLE legal_documents (
   in_force_date TEXT,
   url TEXT,
   description TEXT,
+  issuing_body TEXT,
+  province TEXT,
+  province_code TEXT,
   last_updated TEXT DEFAULT (datetime('now'))
 );
+
+CREATE INDEX idx_documents_type ON legal_documents(type);
+CREATE INDEX idx_documents_category ON legal_documents(category);
+CREATE INDEX idx_documents_province ON legal_documents(province_code);
 
 -- Individual provisions (articles) from laws
 CREATE TABLE legal_provisions (
@@ -304,8 +316,8 @@ function buildDatabase(): void {
   db.exec(SCHEMA);
 
   const insertDoc = db.prepare(`
-    INSERT INTO legal_documents (id, type, title, title_en, short_name, status, issued_date, in_force_date, url, description)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO legal_documents (id, type, category, title, title_en, short_name, status, issued_date, in_force_date, url, description, issuing_body, province, province_code)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertProvision = db.prepare(`
@@ -353,6 +365,7 @@ function buildDatabase(): void {
       insertDoc.run(
         seed.id,
         seed.type ?? 'statute',
+        seed.category ?? null,
         seed.title,
         seed.title_en || englishName?.title_en || null,
         seed.short_name || englishName?.short_name || null,
@@ -361,6 +374,9 @@ function buildDatabase(): void {
         seed.in_force_date ?? null,
         seed.url ?? null,
         seed.description ?? null,
+        seed.issuing_body ?? null,
+        seed.province ?? null,
+        seed.province_code ?? null,
       );
       totalDocs++;
 

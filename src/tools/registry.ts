@@ -37,6 +37,8 @@ export const TOOLS: Tool[] = [
       'Returns provision-level results with relevance ranking. ' +
       'Results include: document ID, title, provision reference, snippet with >>>highlight<<< markers, and relevance score. ' +
       'Use document_id to filter within a single statute (pass Chinese name like "网络安全法" or abbreviation like "PIPL"). ' +
+      'Use category to filter by law type: national_law, admin_reg, local_reg, judicial_interp, regulatory_decision. ' +
+      'Use province to filter local regulations by province code (e.g., "BJ" for Beijing, "GD" for Guangdong). ' +
       'Use status to filter by in_force/amended/repealed. ' +
       'Default limit is 10 (max 50).',
     inputSchema: {
@@ -49,6 +51,15 @@ export const TOOLS: Tool[] = [
         document_id: {
           type: 'string',
           description: 'Filter to a specific law by Chinese name (e.g., "网络安全法"), abbreviation (e.g., "PIPL", "CSL"), or internal UUID',
+        },
+        category: {
+          type: 'string',
+          enum: ['national_law', 'admin_reg', 'local_reg', 'judicial_interp', 'regulatory_decision'],
+          description: 'Filter by law category. national_law = NPC laws, admin_reg = State Council regulations, local_reg = provincial/municipal regulations, judicial_interp = SPC interpretations.',
+        },
+        province: {
+          type: 'string',
+          description: 'Filter local regulations by province code (ISO 3166-2:CN). Examples: BJ (Beijing), SH (Shanghai), GD (Guangdong), ZJ (Zhejiang), JS (Jiangsu).',
         },
         status: {
           type: 'string',
@@ -201,8 +212,28 @@ export const TOOLS: Tool[] = [
   },
 ];
 
+const LIST_PROVINCES_TOOL: Tool = {
+  name: 'list_provinces',
+  description:
+    'List all Chinese provinces/regions with their law counts. ' +
+    'Returns province name, code, and number of local regulations available. ' +
+    'Use the province code with search_legislation to filter results.',
+  inputSchema: { type: 'object', properties: {} },
+};
+
+const LIST_CATEGORIES_TOOL: Tool = {
+  name: 'list_categories',
+  description:
+    'List all law categories with their document counts. ' +
+    'Categories: national_law (NPC laws), admin_reg (State Council regulations), ' +
+    'local_reg (provincial/municipal regulations), judicial_interp (SPC interpretations), ' +
+    'departmental_rule (ministry rules), regulatory_decision (regulatory decisions).',
+  inputSchema: { type: 'object', properties: {} },
+};
+
 export function buildTools(context?: AboutContext): Tool[] {
-  return context ? [...TOOLS, ABOUT_TOOL] : TOOLS;
+  const tools = [...TOOLS, LIST_PROVINCES_TOOL, LIST_CATEGORIES_TOOL];
+  return context ? [...tools, ABOUT_TOOL] : tools;
 }
 
 export function registerTools(
@@ -244,6 +275,29 @@ export function registerTools(
         case 'check_currency':
           result = await checkCurrency(db, args as unknown as CheckCurrencyInput);
           break;
+        case 'list_provinces': {
+          const rows = db.prepare(`
+            SELECT province AS name, province_code AS code, COUNT(*) AS law_count
+            FROM legal_documents
+            WHERE province_code IS NOT NULL
+            GROUP BY province_code
+            ORDER BY law_count DESC
+          `).all();
+          result = { provinces: rows, total: rows.length };
+          break;
+        }
+        case 'list_categories': {
+          const rows = db.prepare(`
+            SELECT category, type, COUNT(*) AS document_count,
+              (SELECT COUNT(*) FROM legal_provisions lp JOIN legal_documents ld ON ld.id = lp.document_id WHERE ld.category = legal_documents.category) AS provision_count
+            FROM legal_documents
+            WHERE category IS NOT NULL
+            GROUP BY category
+            ORDER BY document_count DESC
+          `).all();
+          result = { categories: rows };
+          break;
+        }
         case 'about':
           if (context) {
             result = getAbout(db, context);

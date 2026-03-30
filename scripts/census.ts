@@ -38,6 +38,25 @@ const NATIONAL_LAW_CODES = [100, 110, 120, 130, 140, 150, 160, 170];
 // Administrative regulation code
 const ADMIN_REG_CODE = 210;
 
+// Extended categories for full-corpus ingestion
+const EXTENDED_CODES = [
+  200,  // Amendment/repeal decisions (national)
+  215,  // Amendment/repeal decisions (admin regs)
+  220,  // Supervisory regulations (监察法规)
+  230,  // Local regulations — main bucket (~22K)
+  260,  // Local regulations — autonomous regions
+  270,  // Local regulations — SEZ/special
+  290,  // Local regulations — municipal
+  295,  // Local regulations — supplementary
+  300,  // Local regulations — other
+  305,  // Regulatory decisions (法规性决定)
+  310,  // Amendment/repeal decisions (local)
+  320,  // Judicial interpretations — main
+  330,  // Judicial interpretations — supplementary
+  340,  // Judicial interpretations — SPC opinions
+  350,  // Amendment/repeal decisions (judicial)
+];
+
 const CATEGORY_NAMES: Record<number, string> = {
   100: '宪法 (Constitution)',
   110: '宪法相关法 (Constitutional-related)',
@@ -47,7 +66,22 @@ const CATEGORY_NAMES: Record<number, string> = {
   150: '社会法 (Social)',
   160: '刑法 (Criminal)',
   170: '诉讼与非诉讼程序法 (Procedure)',
+  200: '修改废止决定-国家 (National Amendment/Repeal Decisions)',
   210: '行政法规 (Administrative Regulations)',
+  215: '修改废止决定-行政法规 (Admin Reg Amendment/Repeal Decisions)',
+  220: '监察法规 (Supervisory Regulations)',
+  230: '地方性法规 (Local Regulations)',
+  260: '自治条例/单行条例 (Autonomous Region Regulations)',
+  270: '经济特区法规 (SEZ Regulations)',
+  290: '设区的市地方性法规 (Municipal Regulations)',
+  295: '地方性法规-补充 (Local Regulations — supplementary)',
+  300: '地方性法规-其他 (Local Regulations — other)',
+  305: '法规性决定 (Regulatory Decisions)',
+  310: '修改废止决定-地方 (Local Amendment/Repeal Decisions)',
+  320: '司法解释 (Judicial Interpretations)',
+  330: '司法解释-补充 (Judicial Interpretations — supplementary)',
+  340: '司法解释-意见 (Judicial Interpretations — opinions)',
+  350: '修改废止决定-司法 (Judicial Amendment/Repeal Decisions)',
 };
 
 // FLK status codes
@@ -81,6 +115,58 @@ interface CensusEntry {
   status: string;
   classification: 'ingestable' | 'excluded';
   exclusion_reason?: string;
+  province?: string;
+  province_code?: string;
+}
+
+// Province extraction from issuing body (zdjgName)
+const PROVINCE_MAP: Record<string, { name: string; code: string }> = {
+  '北京': { name: '北京市', code: 'BJ' },
+  '天津': { name: '天津市', code: 'TJ' },
+  '河北': { name: '河北省', code: 'HE' },
+  '山西': { name: '山西省', code: 'SX' },
+  '内蒙古': { name: '内蒙古自治区', code: 'NM' },
+  '辽宁': { name: '辽宁省', code: 'LN' },
+  '吉林': { name: '吉林省', code: 'JL' },
+  '黑龙江': { name: '黑龙江省', code: 'HL' },
+  '上海': { name: '上海市', code: 'SH' },
+  '江苏': { name: '江苏省', code: 'JS' },
+  '浙江': { name: '浙江省', code: 'ZJ' },
+  '安徽': { name: '安徽省', code: 'AH' },
+  '福建': { name: '福建省', code: 'FJ' },
+  '江西': { name: '江西省', code: 'JX' },
+  '山东': { name: '山东省', code: 'SD' },
+  '河南': { name: '河南省', code: 'HN' },
+  '湖北': { name: '湖北省', code: 'HB' },
+  '湖南': { name: '湖南省', code: 'HuN' },
+  '广东': { name: '广东省', code: 'GD' },
+  '广西': { name: '广西壮族自治区', code: 'GX' },
+  '海南': { name: '海南省', code: 'HI' },
+  '重庆': { name: '重庆市', code: 'CQ' },
+  '四川': { name: '四川省', code: 'SC' },
+  '贵州': { name: '贵州省', code: 'GZ' },
+  '云南': { name: '云南省', code: 'YN' },
+  '西藏': { name: '西藏自治区', code: 'XZ' },
+  '陕西': { name: '陕西省', code: 'SN' },
+  '甘肃': { name: '甘肃省', code: 'GS' },
+  '青海': { name: '青海省', code: 'QH' },
+  '宁夏': { name: '宁夏回族自治区', code: 'NX' },
+  '新疆': { name: '新疆维吾尔自治区', code: 'XJ' },
+};
+
+function extractProvince(issuingBody: string): { name: string; code: string } | null {
+  for (const [prefix, info] of Object.entries(PROVINCE_MAP)) {
+    if (issuingBody.startsWith(prefix) || issuingBody.includes(prefix + '省') || issuingBody.includes(prefix + '市')) {
+      return info;
+    }
+  }
+  // Check for autonomous region patterns
+  for (const [prefix, info] of Object.entries(PROVINCE_MAP)) {
+    if (issuingBody.includes(prefix)) {
+      return info;
+    }
+  }
+  return null;
 }
 
 interface Census {
@@ -106,40 +192,85 @@ async function rateLimit(): Promise<void> {
   lastRequestTime = Date.now();
 }
 
+async function fetchPage(code: number, page: number, pageSize: number, maxRetries = 3): Promise<{ total: number; rows: FlkRow[] } | null> {
+  const body = JSON.stringify({
+    searchRange: 1,
+    searchType: 2,
+    flfgCodeId: [code],
+    zdjgCodeId: [],
+    searchContent: '',
+    pageNum: page,
+    pageSize,
+  });
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await rateLimit();
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
+
+      const response = await fetch(FLK_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'ChineseLawMCP/1.0 (https://github.com/Ansvar-Systems/chinese-law-mcp)',
+        },
+        body,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      const data = await response.json() as { total: number; rows: FlkRow[]; code: number };
+
+      if (data.code !== 200 || !data.rows) {
+        console.error(`\n  API error for code ${code} page ${page}:`, data);
+        return null;
+      }
+
+      return { total: data.total, rows: data.rows };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (attempt < maxRetries) {
+        const backoff = Math.pow(2, attempt + 1) * 1000;
+        process.stdout.write(`\n    Retry ${attempt + 1}/${maxRetries} for code ${code} page ${page} (${msg}), waiting ${backoff}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+        continue;
+      }
+      console.error(`\n  Failed to fetch code ${code} page ${page} after ${maxRetries} retries: ${msg}`);
+      return null;
+    }
+  }
+  return null;
+}
+
 async function fetchCategory(code: number): Promise<FlkRow[]> {
   const rows: FlkRow[] = [];
   let page = 1;
   const pageSize = 100;
+  let consecutiveFailures = 0;
 
   while (true) {
-    await rateLimit();
-
-    const body = JSON.stringify({
-      searchRange: 1,
-      searchType: 2,
-      flfgCodeId: [code],
-      zdjgCodeId: [],
-      searchContent: '',
-      pageNum: page,
-      pageSize,
-    });
-
-    const response = await fetch(FLK_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    });
-
-    const data = await response.json() as { total: number; rows: FlkRow[]; code: number };
-
-    if (data.code !== 200 || !data.rows) {
-      console.error(`  API error for code ${code} page ${page}:`, data);
-      break;
+    const result = await fetchPage(code, page, pageSize);
+    if (!result) {
+      consecutiveFailures++;
+      if (consecutiveFailures >= 3) {
+        console.error(`\n  Giving up on code ${code} after 3 consecutive page failures (got ${rows.length} rows so far)`);
+        break;
+      }
+      // Skip this page and try the next
+      page++;
+      continue;
     }
 
-    rows.push(...data.rows);
+    consecutiveFailures = 0;
+    rows.push(...result.rows);
 
-    if (rows.length >= data.total || data.rows.length < pageSize) {
+    // Progress indicator for large categories
+    if (result.total > 500 && page % 10 === 0) {
+      process.stdout.write(` ${rows.length}/${result.total}`);
+    }
+
+    if (rows.length >= result.total || result.rows.length < pageSize) {
       break;
     }
 
@@ -148,6 +279,9 @@ async function fetchCategory(code: number): Promise<FlkRow[]> {
 
   return rows;
 }
+
+// Amendment/repeal decision codes — these are procedural documents, not substantive law
+const AMENDMENT_REPEAL_CODES = new Set([200, 215, 310, 350]);
 
 function classifyEntry(row: FlkRow): CensusEntry {
   const status = row.sxx != null ? (STATUS_MAP[row.sxx] ?? 'unknown') : 'unknown';
@@ -161,6 +295,15 @@ function classifyEntry(row: FlkRow): CensusEntry {
     exclusion_reason = 'Repealed (已废止)';
   }
 
+  // Amendment/repeal decisions are procedural — exclude unless they contain substantive text
+  if (AMENDMENT_REPEAL_CODES.has(row.flfgCodeId)) {
+    classification = 'excluded';
+    exclusion_reason = 'Amendment/repeal decision (procedural)';
+  }
+
+  // Extract province for local regulations
+  const province = extractProvince(row.zdjgName);
+
   return {
     bbbs: row.bbbs,
     title: row.title,
@@ -173,19 +316,28 @@ function classifyEntry(row: FlkRow): CensusEntry {
     status,
     classification,
     exclusion_reason,
+    ...(province ? { province: province.name, province_code: province.code } : {}),
   };
 }
 
 async function main(): Promise<void> {
   const includeAdmin = process.argv.includes('--include-admin');
-  const codes = includeAdmin
-    ? [...NATIONAL_LAW_CODES, ADMIN_REG_CODE]
-    : NATIONAL_LAW_CODES;
+  const fullCorpus = process.argv.includes('--full-corpus');
+  let codes: number[];
+
+  if (fullCorpus) {
+    codes = [...NATIONAL_LAW_CODES, ADMIN_REG_CODE, ...EXTENDED_CODES];
+  } else if (includeAdmin) {
+    codes = [...NATIONAL_LAW_CODES, ADMIN_REG_CODE];
+  } else {
+    codes = NATIONAL_LAW_CODES;
+  }
 
   console.log('Chinese Law MCP — Census');
   console.log('========================\n');
   console.log(`Source: flk.npc.gov.cn (National Law Database)`);
-  console.log(`Categories: ${codes.join(', ')}${includeAdmin ? ' (including admin regulations)' : ''}\n`);
+  console.log(`Mode: ${fullCorpus ? 'FULL CORPUS (all categories)' : includeAdmin ? 'national + admin regulations' : 'national laws only'}`);
+  console.log(`Categories: ${codes.join(', ')}\n`);
 
   const allEntries: CensusEntry[] = [];
 
@@ -204,7 +356,7 @@ async function main(): Promise<void> {
   // Sort by category code, then by publish date (newest first)
   allEntries.sort((a, b) => {
     if (a.category_code !== b.category_code) return a.category_code - b.category_code;
-    return b.publish_date.localeCompare(a.publish_date);
+    return (b.publish_date ?? '').localeCompare(a.publish_date ?? '');
   });
 
   const ingestable = allEntries.filter(e => e.classification === 'ingestable').length;

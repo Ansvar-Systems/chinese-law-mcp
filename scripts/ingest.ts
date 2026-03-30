@@ -39,8 +39,11 @@ const STATUS_MAP: Record<string, 'in_force' | 'amended' | 'repealed' | 'not_yet_
   unknown: 'in_force',
 };
 
-// FLK category codes → document type
+// FLK category codes → document type mapping
 const ADMIN_REG_CODES = new Set([210, 215, 220]);
+const LOCAL_REG_CODES = new Set([230, 260, 270, 290, 295, 300]);
+const JUDICIAL_INTERP_CODES = new Set([320, 330, 340]);
+const REGULATORY_DECISION_CODES = new Set([305]);
 
 interface CensusEntry {
   bbbs: string;
@@ -54,6 +57,24 @@ interface CensusEntry {
   status: string;
   classification: 'ingestable' | 'excluded';
   exclusion_reason?: string;
+  province?: string;
+  province_code?: string;
+}
+
+function resolveDocType(categoryCode: number): string {
+  if (ADMIN_REG_CODES.has(categoryCode)) return 'administrative_regulation';
+  if (LOCAL_REG_CODES.has(categoryCode)) return 'local_regulation';
+  if (JUDICIAL_INTERP_CODES.has(categoryCode)) return 'judicial_interpretation';
+  if (REGULATORY_DECISION_CODES.has(categoryCode)) return 'regulatory_decision';
+  return 'statute';
+}
+
+function resolveCategory(categoryCode: number): string {
+  if (ADMIN_REG_CODES.has(categoryCode)) return 'admin_reg';
+  if (LOCAL_REG_CODES.has(categoryCode)) return 'local_reg';
+  if (JUDICIAL_INTERP_CODES.has(categoryCode)) return 'judicial_interp';
+  if (REGULATORY_DECISION_CODES.has(categoryCode)) return 'regulatory_decision';
+  return 'national_law';
 }
 
 interface Census {
@@ -69,10 +90,11 @@ interface Census {
 // CLI argument parsing
 // ─────────────────────────────────────────────────────────────────────────────
 
-function parseArgs(): { limit: number | null; force: boolean } {
+function parseArgs(): { limit: number | null; force: boolean; censusFile: string } {
   const args = process.argv.slice(2);
   let limit: number | null = null;
   let force = false;
+  let censusFile = CENSUS_PATH;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--limit' && args[i + 1]) {
@@ -82,8 +104,15 @@ function parseArgs(): { limit: number | null; force: boolean } {
     if (args[i] === '--force') {
       force = true;
     }
+    if (args[i] === '--census' && args[i + 1]) {
+      censusFile = path.resolve(args[i + 1]);
+      i++;
+    }
+    if (args[i] === '--full-corpus') {
+      censusFile = path.resolve(__dirname, '../data/census-full.json');
+    }
   }
-  return { limit, force };
+  return { limit, force, censusFile };
 }
 
 /**
@@ -99,19 +128,22 @@ function bbbs2id(bbbs: string): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const { limit, force } = parseArgs();
+  const { limit, force, censusFile } = parseArgs();
 
   console.log('Chinese Law MCP — Ingestion Pipeline');
   console.log('====================================\n');
 
   // Load census
-  if (!fs.existsSync(CENSUS_PATH)) {
-    console.error('ERROR: Census file not found. Run census.ts first:');
-    console.error('  npx tsx scripts/census.ts --include-admin');
+  if (!fs.existsSync(censusFile)) {
+    console.error(`ERROR: Census file not found: ${censusFile}`);
+    console.error('  Run census.ts first:');
+    console.error('  npx tsx scripts/census.ts --full-corpus    # Full corpus');
+    console.error('  npx tsx scripts/census.ts --include-admin  # National + admin only');
     process.exit(1);
   }
 
-  const census: Census = JSON.parse(fs.readFileSync(CENSUS_PATH, 'utf-8'));
+  console.log(`Census file: ${censusFile}\n`);
+  const census: Census = JSON.parse(fs.readFileSync(censusFile, 'utf-8'));
   console.log(`Census: ${census.total} total, ${census.ingestable} ingestable (from ${census.source})`);
   console.log(`Generated: ${census.generated}\n`);
 
@@ -172,7 +204,7 @@ async function main(): Promise<void> {
       }
 
       // Parse articles from HTML
-      const docType = ADMIN_REG_CODES.has(entry.category_code) ? 'administrative_regulation' : 'statute';
+      const docType = resolveDocType(entry.category_code);
       const status = STATUS_MAP[entry.status] ?? 'in_force';
 
       const parsed = parseDocxHtml(html, entry.bbbs, {
@@ -184,9 +216,10 @@ async function main(): Promise<void> {
       });
 
       // Build seed
-      const seed = {
+      const seed: Record<string, unknown> = {
         id: entry.bbbs,
-        type: parsed.type,
+        type: docType,
+        category: resolveCategory(entry.category_code),
         title: entry.title,
         title_en: '',
         short_name: '',
@@ -200,6 +233,12 @@ async function main(): Promise<void> {
         provisions: parsed.provisions,
         definitions: [],
       };
+
+      // Add province info for local regulations
+      if (entry.province_code) {
+        seed.province = entry.province;
+        seed.province_code = entry.province_code;
+      }
 
       fs.writeFileSync(seedFile, JSON.stringify(seed, null, 2));
       totalProvisions += parsed.provisions.length;
@@ -233,10 +272,10 @@ async function main(): Promise<void> {
 }
 
 function writeMinimalSeed(seedFile: string, entry: CensusEntry): void {
-  const docType = ADMIN_REG_CODES.has(entry.category_code) ? 'administrative_regulation' : 'statute';
-  const seed = {
+  const seed: Record<string, unknown> = {
     id: entry.bbbs,
-    type: docType,
+    type: resolveDocType(entry.category_code),
+    category: resolveCategory(entry.category_code),
     title: entry.title,
     title_en: '',
     short_name: '',
@@ -250,6 +289,10 @@ function writeMinimalSeed(seedFile: string, entry: CensusEntry): void {
     provisions: [],
     definitions: [],
   };
+  if (entry.province_code) {
+    seed.province = entry.province;
+    seed.province_code = entry.province_code;
+  }
   fs.writeFileSync(seedFile, JSON.stringify(seed, null, 2));
 }
 

@@ -14,6 +14,8 @@ export interface SearchLegislationInput {
   query: string;
   document_id?: string;
   status?: string;
+  category?: string;
+  province?: string;
   as_of_date?: string;
   limit?: number;
 }
@@ -94,6 +96,16 @@ export async function searchLegislation(
       params.push(input.status);
     }
 
+    if (input.category) {
+      sql += ' AND ld.category = ?';
+      params.push(input.category);
+    }
+
+    if (input.province) {
+      sql += ' AND ld.province_code = ?';
+      params.push(input.province);
+    }
+
     sql += ' ORDER BY relevance LIMIT ?';
     params.push(fetchLimit);
 
@@ -143,6 +155,16 @@ export async function searchLegislation(
     if (input.status) {
       likeSql += ' AND ld.status = ?';
       likeParams.push(input.status);
+    }
+
+    if (input.category) {
+      likeSql += ' AND ld.category = ?';
+      likeParams.push(input.category);
+    }
+
+    if (input.province) {
+      likeSql += ' AND ld.province_code = ?';
+      likeParams.push(input.province);
     }
 
     likeSql += ' LIMIT ?';
