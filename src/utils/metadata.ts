@@ -2,7 +2,7 @@
  * Response metadata for Chinese Law MCP tool responses.
  */
 
-import type Database from '@ansvar/mcp-sqlite';
+import type Database from 'better-sqlite3';
 
 export interface ResponseMetadata {
   data_freshness: string;

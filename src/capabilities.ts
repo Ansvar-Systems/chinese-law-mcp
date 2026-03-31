@@ -3,7 +3,7 @@
  * Detects which database tables are available to enable/disable features.
  */
 
-import type Database from '@ansvar/mcp-sqlite';
+import type Database from 'better-sqlite3';
 
 export type Capability =
   | 'core_legislation'

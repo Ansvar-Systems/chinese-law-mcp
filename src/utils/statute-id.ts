@@ -6,7 +6,7 @@
  * to database document IDs.
  */
 
-import type Database from '@ansvar/mcp-sqlite';
+import type Database from 'better-sqlite3';
 
 // ---------------------------------------------------------------------------
 // Types

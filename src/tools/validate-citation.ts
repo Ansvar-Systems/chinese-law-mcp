@@ -2,7 +2,7 @@
  * validate_citation — Validate a Chinese legal citation against the database.
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { validateCitation as doValidate } from '../citation/validator.js';
 import { formatCitation } from '../citation/formatter.js';
 import type { ValidationResult } from '../types/index.js';

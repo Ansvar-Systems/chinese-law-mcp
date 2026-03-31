@@ -2,7 +2,7 @@
  * about — Server metadata, dataset statistics, and provenance.
  */
 
-import type Database from '@ansvar/mcp-sqlite';
+import type Database from 'better-sqlite3';
 
 export interface AboutContext {
   version: string;

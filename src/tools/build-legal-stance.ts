@@ -3,7 +3,7 @@
  * Uses FTS5 trigram for CJK substring matching with LIKE fallback.
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { buildFtsQueryVariantsLegacy as buildFtsQueryVariants } from '../utils/fts-query.js';
 import { resolveDocumentId } from '../utils/statute-id.js';
 import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.js';

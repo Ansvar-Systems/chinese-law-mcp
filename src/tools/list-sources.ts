@@ -2,7 +2,7 @@
  * list_sources — Returns metadata about data sources, coverage, and freshness.
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.js';
 
 export interface ListSourcesResult {

@@ -4,7 +4,7 @@
  * Falls back to LIKE for queries shorter than 3 characters.
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { buildFtsQueryVariants, buildLikePattern, sanitizeFtsInput } from '../utils/fts-query.js';
 import { normalizeAsOfDate } from '../utils/as-of-date.js';
 import { resolveDocumentId } from '../utils/statute-id.js';

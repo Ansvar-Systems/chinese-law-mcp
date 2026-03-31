@@ -3,7 +3,7 @@
  * Supports article references in both Chinese (第三条) and Arabic (3) format.
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { resolveExistingStatuteId } from '../utils/statute-id.js';
 import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.js';
 

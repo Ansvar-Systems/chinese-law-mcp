@@ -18,6 +18,7 @@
  *   npx tsx scripts/ingest-waf.ts                       # All WAF-blocked entries
  *   npx tsx scripts/ingest-waf.ts --limit 50            # Test with 50 entries
  *   npx tsx scripts/ingest-waf.ts --category 320        # Only judicial interpretations
+ *   npx tsx scripts/ingest-waf.ts --category 270,290,260 # Multiple categories (comma-separated)
  *   npx tsx scripts/ingest-waf.ts --force               # Re-download existing seeds
  *   npx tsx scripts/ingest-waf.ts --concurrency 3       # Parallel browser tabs
  */
@@ -93,13 +94,16 @@ function parseArgs() {
   const args = process.argv.slice(2);
   let limit: number | null = null;
   let force = false;
-  let categoryFilter: number | null = null;
+  let categoryFilter: number[] = [];
   let concurrency = 1;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--limit' && args[i + 1]) { limit = parseInt(args[i + 1], 10); i++; }
     if (args[i] === '--force') { force = true; }
-    if (args[i] === '--category' && args[i + 1]) { categoryFilter = parseInt(args[i + 1], 10); i++; }
+    if (args[i] === '--category' && args[i + 1]) {
+      categoryFilter = args[i + 1].split(',').map(s => parseInt(s.trim(), 10));
+      i++;
+    }
     if (args[i] === '--concurrency' && args[i + 1]) { concurrency = parseInt(args[i + 1], 10); i++; }
   }
   return { limit, force, categoryFilter, concurrency };
@@ -113,33 +117,20 @@ async function downloadViaPlaywright(page: Page, bbbs: string): Promise<Buffer |
   const downloadUrl = `${FLK_DOWNLOAD_URL}?format=docx&bbbs=${bbbs}`;
 
   try {
-    // Navigate to the download URL — Playwright will handle the JS challenge
-    const downloadPromise = page.waitForEvent('download', { timeout: 30_000 }).catch(() => null);
+    // Use Promise.all pattern: register download listener BEFORE goto.
+    // goto() throws when the response is a file download (not a page), so we
+    // catch it and rely on the download event instead.
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 30_000 }),
+      page.goto(downloadUrl, { timeout: 30_000 }).catch(() => null),
+    ]);
 
-    // Try direct download first
-    const response = await page.goto(downloadUrl, { waitUntil: 'networkidle', timeout: 30_000 });
-
-    if (!response) return null;
-
-    const contentType = response.headers()['content-type'] ?? '';
-
-    // If we got a direct file response (not HTML challenge)
-    if (contentType.includes('application/') || contentType.includes('octet-stream')) {
-      const body = await response.body();
-      return body;
+    const downloadPath = await download.path();
+    if (downloadPath) {
+      const buffer = fs.readFileSync(downloadPath);
+      if (buffer.length > 100) return buffer;
     }
 
-    // If we hit the JS challenge page, wait for redirect
-    const download = await downloadPromise;
-    if (download) {
-      const downloadPath = await download.path();
-      if (downloadPath) {
-        const buffer = fs.readFileSync(downloadPath);
-        return buffer;
-      }
-    }
-
-    // Fallback: try to extract HTML content from the detail page
     return null;
   } catch (error) {
     return null;
@@ -147,28 +138,44 @@ async function downloadViaPlaywright(page: Page, bbbs: string): Promise<Buffer |
 }
 
 async function extractHtmlContent(page: Page, bbbs: string): Promise<string | null> {
+  // The detail page is a Vue SPA — static selectors won't match.
+  // Instead, intercept the JSON API response that the Vue app fetches.
   const detailUrl = `${FLK_DETAIL_URL}?bbbs=${bbbs}`;
 
   try {
-    await page.goto(detailUrl, { waitUntil: 'networkidle', timeout: 30_000 });
+    let apiContent: string | null = null;
 
-    // Wait for the content to load (after JS challenge resolves)
-    await page.waitForSelector('.law-content, .article_content, .content, .p_content', { timeout: 15_000 }).catch(() => null);
+    // Listen for API responses containing law body text
+    const responseHandler = async (response: import('playwright').Response) => {
+      const url = response.url();
+      if (!url.includes(bbbs)) return;
+      const ct = response.headers()['content-type'] ?? '';
+      if (!ct.includes('json')) return;
+      try {
+        const text = await response.text();
+        if (text.length > 200 && !apiContent) apiContent = text;
+      } catch {}
+    };
 
-    // Extract the law text content
-    const content = await page.evaluate(() => {
-      const selectors = ['.law-content', '.article_content', '.content', '.p_content', '.main-content'];
-      for (const sel of selectors) {
-        const el = document.querySelector(sel);
-        if (el && el.innerHTML.length > 100) {
-          return el.innerHTML;
-        }
-      }
-      // Fallback: get full body content
-      return document.body.innerHTML;
-    });
+    page.on('response', responseHandler);
 
-    return content && content.length > 100 ? content : null;
+    await page.goto(detailUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(8_000); // Let Vue hydrate and fetch data
+
+    page.off('response', responseHandler);
+
+    if (apiContent) {
+      // Try to extract the body/content field from the JSON
+      try {
+        const json = JSON.parse(apiContent);
+        const body = json?.result?.body ?? json?.data?.body ?? json?.body ?? '';
+        if (typeof body === 'string' && body.length > 100) return body;
+      } catch {}
+      // Return raw if large enough — parser can handle HTML
+      if (apiContent.length > 200) return apiContent;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -329,9 +336,10 @@ async function main(): Promise<void> {
     WAF_BLOCKED_CODES.has(e.category_code)
   );
 
-  if (categoryFilter) {
-    entries = entries.filter(e => e.category_code === categoryFilter);
-    console.log(`Filtering to category ${categoryFilter}\n`);
+  if (categoryFilter.length > 0) {
+    const filterSet = new Set(categoryFilter);
+    entries = entries.filter(e => filterSet.has(e.category_code));
+    console.log(`Filtering to categories: ${categoryFilter.join(', ')}\n`);
   }
 
   if (limit) {
@@ -373,8 +381,16 @@ async function main(): Promise<void> {
 
   try {
     const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     });
+
+    // Prime WAF cookies — visit main site once so all subsequent pages share the session
+    console.log('Priming WAF cookies...');
+    const primePage = await context.newPage();
+    await primePage.goto('https://flk.npc.gov.cn/', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await primePage.waitForTimeout(3_000);
+    await primePage.close();
+    console.log('WAF cookies primed.\n');
 
     // Process in batches with concurrency
     for (let i = 0; i < entries.length; i += concurrency) {
@@ -404,9 +420,9 @@ async function main(): Promise<void> {
       // Close pages after batch
       await Promise.all(pages.map(p => p.close()));
 
-      // Rate limit between batches (1 second)
+      // Rate limit between batches (2 seconds to avoid server throttling)
       if (i + concurrency < entries.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
   } finally {

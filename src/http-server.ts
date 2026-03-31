@@ -23,7 +23,7 @@ import { createHash } from 'crypto';
 import { existsSync, openSync, readSync, closeSync, readFileSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import Database from '@ansvar/mcp-sqlite';
+import Database from 'better-sqlite3';
 
 import { registerTools } from './tools/registry.js';
 import { detectCapabilities, readDbMetadata } from './capabilities.js';

@@ -9,7 +9,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import Database from '@ansvar/mcp-sqlite';
+import Database from 'better-sqlite3';
 
 import { searchLegislation, SearchLegislationInput } from './search-legislation.js';
 import { getProvision, GetProvisionInput } from './get-provision.js';

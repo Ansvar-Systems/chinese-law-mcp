@@ -2,7 +2,7 @@
  * check_currency — Check if a Chinese law is current (in force).
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import { generateResponseMetadata, type ToolResponse } from '../utils/metadata.js';
 
 export interface CheckCurrencyInput {

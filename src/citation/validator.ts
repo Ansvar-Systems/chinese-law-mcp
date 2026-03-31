@@ -5,7 +5,7 @@
  * and provision actually exist (zero-hallucination enforcement).
  */
 
-import type { Database } from '@ansvar/mcp-sqlite';
+import type { Database } from 'better-sqlite3';
 import type { ValidationResult } from '../types/index.js';
 import { parseCitation } from './parser.js';
 
