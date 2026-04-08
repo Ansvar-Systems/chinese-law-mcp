@@ -19,6 +19,7 @@ import { buildLegalStance, BuildLegalStanceInput } from './build-legal-stance.js
 import { formatCitationTool, FormatCitationInput } from './format-citation.js';
 import { checkCurrency, CheckCurrencyInput } from './check-currency.js';
 import { getAbout, type AboutContext } from './about.js';
+import { generateResponseMetadata } from '../utils/metadata.js';
 export type { AboutContext } from './about.js';
 
 const ABOUT_TOOL: Tool = {
@@ -283,7 +284,7 @@ export function registerTools(
             GROUP BY province_code
             ORDER BY law_count DESC
           `).all();
-          result = { provinces: rows, total: rows.length };
+          result = { provinces: rows, total: rows.length, _metadata: generateResponseMetadata(db) };
           break;
         }
         case 'list_categories': {
@@ -295,7 +296,7 @@ export function registerTools(
             GROUP BY category
             ORDER BY document_count DESC
           `).all();
-          result = { categories: rows };
+          result = { categories: rows, _metadata: generateResponseMetadata(db) };
           break;
         }
         case 'about':

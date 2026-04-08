@@ -1,6 +1,6 @@
 # Tools — Chinese Law MCP
 
-8 tools for searching and retrieving Chinese legislation.
+10 tools for searching and retrieving Chinese legislation.
 
 ---
 
@@ -107,3 +107,19 @@ Check whether a statute or provision is currently in force.
 Server metadata, dataset statistics, and data freshness.
 
 **Returns:** Document/provision counts, build date, source authority, and database version.
+
+---
+
+## 9. list_provinces
+
+List all provinces with legislation in the database, including document counts.
+
+**Returns:** Array of provinces with name, code, and law count, plus total count.
+
+---
+
+## 10. list_categories
+
+List all legal categories in the database, including document and provision counts.
+
+**Returns:** Array of categories with name, type, document count, and provision count.
