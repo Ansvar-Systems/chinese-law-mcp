@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createHash } from 'node:crypto';
-import { readFileSync, rmdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -133,6 +133,18 @@ const fixture = JSON.parse(fixtureContent) as GoldenTestsFile;
 
 const isNightly = process.env['CONTRACT_MODE'] === 'nightly';
 
+const dbPath =
+  process.env['CHINESE_LAW_DB_PATH'] ?? join(__dirname, '..', '..', 'data', 'database.db');
+const dbAvailable = existsSync(dbPath);
+
+if (!dbAvailable) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[contract] Skipping contract tests: database not found at ${dbPath}. ` +
+      `Run 'npm run ingest' to build it, or download the release artifact.`,
+  );
+}
+
 let mcpClient: Client;
 let db: InstanceType<typeof Database>;
 
@@ -140,11 +152,8 @@ let db: InstanceType<typeof Database>;
 // Contract test runner
 // ---------------------------------------------------------------------------
 
-describe(`Contract tests: ${fixture.mcp_name}`, () => {
-  beforeAll(async () => {
-    const dbPath =
-      process.env['CHINESE_LAW_DB_PATH'] ?? join(__dirname, '..', '..', 'data', 'database.db');
-    // Clean up stale lock dir and WAL files
+describe.skipIf(!dbAvailable)(`Contract tests: ${fixture.mcp_name}`, () => {
+  beforeAll(async () => {    // Clean up stale lock dir and WAL files
     try { rmdirSync(dbPath + '.lock'); } catch { /* ignore */ }
     try { rmSync(dbPath + '-wal', { force: true }); } catch { /* ignore */ }
     try { rmSync(dbPath + '-shm', { force: true }); } catch { /* ignore */ }
