@@ -1,0 +1,77 @@
+# =============================================================================
+# Publish GHCR Image — Build, push, and scan container image
+# =============================================================================
+#
+# Triggered on push to main when source, data, or Dockerfile changes.
+# Builds and pushes to GHCR, then runs Trivy image scan (post-merge audit).
+#
+# GHCR auth uses GitHub's built-in GITHUB_TOKEN — no additional secrets needed.
+#
+# Trivy scans the just-built image for CRITICAL and HIGH CVEs.
+# Results are uploaded to the GitHub Security tab as SARIF.
+# This is a post-merge audit trail, not a merge gate (see spec §5.1.1).
+#
+# =============================================================================
+
+name: Publish GHCR Image
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'data/**'
+      - 'package.json'
+      - 'Dockerfile'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image name from package.json
+        id: meta
+        run: |
+          NAME=$(node -e "console.log(require('./package.json').name.replace('@ansvar/', ''))")
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "image_name=${NAME}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/ansvar-systems/${{ steps.meta.outputs.image_name }}:latest
+            ${{ env.REGISTRY }}/ansvar-systems/${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/ansvar-systems/${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif

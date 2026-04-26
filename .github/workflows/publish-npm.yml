@@ -1,0 +1,103 @@
+# =============================================================================
+# NPM Publish — Publish package to npm via Trusted Publishing (OIDC)
+# =============================================================================
+#
+# Triggered on push to main when source or package.json changes.
+# Checks if the version in package.json is already on npm — only publishes
+# if the version is new. This makes the workflow idempotent.
+#
+# Uses npm Trusted Publishing (OIDC) — no NPM_TOKEN secret needed.
+# GitHub Actions authenticates directly with npm via short-lived OIDC tokens.
+# Provenance attestations are generated automatically.
+#
+# PREREQUISITES:
+# 1. Package must be linked as a trusted publisher on npmjs.com:
+#    npm trust github @ansvar/PACKAGE --file publish-npm.yml \
+#      --repo Ansvar-Systems/REPO --yes
+# 2. Package must have "name" and "version" in package.json
+#
+# =============================================================================
+
+name: Publish to npm
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'data/**'
+      - 'package.json'
+      - 'tsconfig.json'
+  workflow_dispatch:
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Check if version already published
+        id: check
+        run: |
+          PACKAGE_NAME=$(node -e "console.log(require('./package.json').name)")
+          PACKAGE_VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
+
+          PUBLISHED=$(npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>/dev/null || echo "")
+          if [ "$PUBLISHED" = "$PACKAGE_VERSION" ]; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${PACKAGE_NAME}@${PACKAGE_VERSION} already on npm — skipping"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.already_published == 'false'
+        run: npm ci
+
+      - name: Build
+        if: steps.check.outputs.already_published == 'false'
+        run: npm run build
+
+      - name: Build database
+        if: steps.check.outputs.already_published == 'false'
+        run: npm run build:db 2>/dev/null || true
+
+      - name: Publish
+        if: steps.check.outputs.already_published == 'false'
+        run: npm publish --access public
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## npm Publish" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package | \`${{ steps.check.outputs.name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version | \`${{ steps.check.outputs.version }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.check.outputs.already_published }}" = "true" ]; then
+            echo "| Status | Already published — skipped |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Status | Published (with provenance) |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
