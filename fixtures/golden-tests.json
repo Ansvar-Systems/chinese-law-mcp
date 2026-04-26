@@ -2,7 +2,7 @@
   "$schema": "./golden-tests.schema.json",
   "version": "2.0",
   "mcp_name": "Chinese Law MCP",
-  "description": "Golden contract tests for the Chinese Law MCP — 1,184 national laws and administrative regulations from flk.npc.gov.cn",
+  "description": "Golden contract tests for the Chinese Law MCP — no tests active; data sources quarantined pending legal review (2026-04-26)",
   "tests": [
     {
       "id": "cn-001",

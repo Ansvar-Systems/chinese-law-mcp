@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- All data sources quarantined pending legal review of reuse permissions.
+  Sources removed: NPC Law Database (flk.npc.gov.cn), NPC English Translations,
+  State Council Gazette (gov.cn), PKU Law (pkulaw.com — commercial subscription),
+  China Justice Observer (chinajusticeobserver.com — editorial/third-party).
+- Seed data and compiled database removed; `data/seed/` and `data/database.db` cleared.
+- Vercel deployment artifacts removed (`vercel.json`, `api/mcp.ts`, `api/health.ts`).
+- `mcp.ansvar.eu` remote endpoint references removed (public server decommissioned 2026-04-23).
+
+### Changed
+- `sources.yml` set to `sources: []` with quarantine notes and backfill candidates.
+- `COVERAGE.md` reflects 0 available provisions pending legal review.
+- Version bumped to 4.0.0 (breaking: database emptied, no data available).
+
 ## [2.1.0] - 2026-02-25
 ### Fixed
 - **FTS5 tokenizer**: Switched from `unicode61` to `trigram` for correct CJK substring matching. Compound term searches like `数据出境` now return results (was 0 with unicode61).
