@@ -1,35 +1,53 @@
-# Chinese Law MCP — Docker image with native better-sqlite3.
-# Uses better-sqlite3 (native C binding) instead of node-sqlite3-wasm
-# to handle the 877MB+ database.
-# Database downloaded from GitHub Release (too large for git).
+        # MCP Server — Hetzner / Kubernetes
+        # Image contract: docs/superpowers/specs/2026-04-25-mcp-infrastructure-standard-design.md §3
+        # Profile: node-native (better-sqlite3 — native modules built in builder, pruned, copied)
+        # DB pattern: built (data/database.db)
 
-# ── Stage 1: Build ──────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
-WORKDIR /app
-RUN apk add --no-cache python3 make g++
-COPY package*.json ./
-RUN npm ci
-COPY tsconfig.json ./
-COPY src ./src
-RUN npm run build
+        FROM node:20-alpine AS builder
 
-# ── Stage 2: Production ────────────────────────────────────────────────
-FROM node:20-alpine AS production
-WORKDIR /app
-RUN apk add --no-cache python3 make g++ curl
-COPY package*.json ./
-RUN npm ci --omit=dev
-COPY --from=builder /app/dist ./dist
+        RUN apk add --no-cache python3 make g++
 
-# Download database from GitHub Release (Strategy B — runtime download for large DBs)
-RUN mkdir -p ./data \
- && curl -fsSL -o ./data/database.db \
-    "https://github.com/Ansvar-Systems/chinese-law-mcp/releases/download/db-latest/database.db"
+        WORKDIR /app
 
-# Security: non-root user
-RUN addgroup -S nodejs && adduser -S nodejs -G nodejs \
- && chown -R nodejs:nodejs /app/data
-USER nodejs
+        COPY package*.json ./
+        RUN npm ci --ignore-scripts && npm cache clean --force
+        # Native module rebuild — better-sqlite3 needs its .node binding for build:db
+        # to open the DB. --ignore-scripts above skipped the prebuild-fetch.
+        RUN npm rebuild better-sqlite3
 
-ENV NODE_ENV=production
-CMD ["node", "dist/http-server.js"]
+        COPY tsconfig.json ./
+        COPY src/ ./src/
+        COPY scripts/ ./scripts/
+        RUN npm run build
+COPY data/ ./data/
+RUN if npm run 2>/dev/null | grep -q "build:db"; then npm run build:db; fi
+        RUN npm prune --omit=dev
+
+        FROM node:20-alpine AS runtime
+
+        WORKDIR /app
+
+        RUN addgroup -g 1001 -S nodejs \
+         && adduser -u 1001 -S nodejs -G nodejs
+
+        COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+        COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+        COPY --chown=nodejs:nodejs package.json ./
+        COPY --from=builder --chown=nodejs:nodejs /app/data ./data
+
+        # Ensure /app/data exists and is writable by the runtime user.
+        # SQLite needs to write -wal/-shm sidecars in the DB directory; even
+        # a read-only DB requires this unless journal_mode=delete is forced.
+        RUN mkdir -p /app/data && chown -R nodejs:nodejs /app/data
+
+        USER nodejs
+
+        ENV NODE_ENV=production \
+            PORT=3000
+
+        EXPOSE 3000
+
+        HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+          CMD node -e "fetch('http://localhost:3000/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"
+
+        CMD ["node", "dist/http-server.js"]
