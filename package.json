@@ -32,7 +32,7 @@
     "@ansvar/mcp-sqlite": "^1.0.3",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "mammoth": "^1.11.0",
-    "better-sqlite3": "^12.6.2"
+    "better-sqlite3": "^12.9.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
