@@ -29,7 +29,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@ansvar/mcp-sqlite": "^1.0.3",
+    "@ansvar/mcp-sqlite": "^1.0.5",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "mammoth": "^1.11.0",
     "better-sqlite3": "^12.6.2"
